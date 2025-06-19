@@ -10,9 +10,9 @@
           <!-- 헤더 -->
           <div class="login-header">
             <div class="logo-section">
-              <el-icon size="48" color="#409EFF">
-                <Shield />
-              </el-icon>
+              <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="#409EFF">
+                <path d="M12,1L3,5V11C3,16.55 6.84,21.74 12,23C17.16,21.74 21,16.55 21,11V5L12,1M12,7C13.4,7 14.8,8.6 14.8,10V11H16V19H8V11H9.2V10C9.2,8.6 10.6,7 12,7M12,8.2C11.2,8.2 10.4,8.7 10.4,10V11H13.6V10C13.6,8.7 12.8,8.2 12,8.2Z"/>
+              </svg>
               <h1 class="app-title">QR 안전교육</h1>
               <p class="app-description">스마트한 안전교육 관리 시스템</p>
             </div>
@@ -170,7 +170,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Shield, Message, Lock } from '@element-plus/icons-vue'
+import { User, Message, Lock } from '@element-plus/icons-vue'
 import { useAuthStore } from '@/stores/auth'
 import nativeBridge from '@/services/native-bridge'
 import { logAnalyticsEvent } from '@/services/firebase'
@@ -178,7 +178,7 @@ import { logAnalyticsEvent } from '@/services/firebase'
 export default {
   name: 'LoginView',
   components: {
-    Shield,
+    User,
     Message,
     Lock
   },
