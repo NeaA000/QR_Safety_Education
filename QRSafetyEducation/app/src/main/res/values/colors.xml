@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 기본 앱 색상 (구글 머티리얼 디자인 기반) -->
+    <color name="purple_200">#FFBB86FC</color>
+    <color name="purple_500">#FF6200EE</color>
+    <color name="purple_700">#FF3700B3</color>
+    <color name="teal_200">#FF03DAC5</color>
+    <color name="teal_700">#FF018786</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+
+    <!-- QR 안전교육 앱 브랜드 색상 -->
+    <color name="primary_color">#FF2196F3</color>        <!-- 파란색 (신뢰감) -->
+    <color name="primary">#FF2196F3</color>              <!-- primary_color 별칭 -->
+    <color name="primary_dark">#FF1976D2</color>         <!-- 진한 파란색 -->
+    <color name="primary_light">#FFBBDEFB</color>        <!-- 연한 파란색 -->
+    <color name="accent_color">#FFFF9800</color>         <!-- 주황색 (경고, 안전) -->
+    <color name="accent">#FFFF9800</color>               <!-- accent_color 별칭 -->
+    <color name="accent_dark">#FFF57C00</color>          <!-- 진한 주황색 -->
+    <color name="accent_light">#FFFFE0B2</color>         <!-- 연한 주황색 -->
+
+    <!-- 스플래시 화면 색상 -->
+    <color name="splash_background">#FFFFFF</color>           <!-- 흰색 배경 -->
+    <color name="splash_text_primary">#FF1565C0</color>       <!-- 진한 파란색 제목 -->
+    <color name="splash_text_secondary">#FF757575</color>     <!-- 회색 부제목 -->
+    <color name="splash_accent">#FFFF9800</color>             <!-- 주황색 액센트 -->
+
+    <!-- WebView 화면 색상 -->
+    <color name="webview_background">#FFFFFF</color>          <!-- 흰색 배경 -->
+    <color name="status_bar_color">#FF1976D2</color>          <!-- 상태바 파란색 -->
+
+    <!-- 로딩 화면 색상 -->
+    <color name="loading_overlay_background">#F5FFFFFF</color> <!-- 반투명 흰색 -->
+    <color name="loading_spinner_color">#FF2196F3</color>      <!-- 파란색 스피너 -->
+    <color name="loading_text_color">#FF424242</color>         <!-- 진한 회색 텍스트 -->
+
+    <!-- 오류 화면 색상 -->
+    <color name="error_background">#FFFFFF</color>             <!-- 흰색 배경 -->
+    <color name="error_icon_color">#FFF44336</color>           <!-- 빨간색 아이콘 -->
+    <color name="error_text_primary">#FF212121</color>         <!-- 검은색 제목 -->
+    <color name="error_text_secondary">#FF757575</color>       <!-- 회색 본문 -->
+    <color name="error">#FFF44336</color>                      <!-- 오류 색상 별칭 -->
+
+    <!-- 버튼 색상 -->
+    <color name="button_primary">#FF2196F3</color>             <!-- 파란색 버튼 -->
+    <color name="button_primary_pressed">#FF1976D2</color>     <!-- 눌린 버튼 -->
+    <color name="button_text_color">#FFFFFF</color>            <!-- 흰색 버튼 텍스트 -->
+    <color name="button_secondary">#FFE0E0E0</color>           <!-- 회색 보조 버튼 -->
+    <color name="button_secondary_text">#FF424242</color>      <!-- 회색 버튼 텍스트 -->
+
+    <!-- 알림 색상 -->
+    <color name="notification_accent_color">#FFFF9800</color>  <!-- 주황색 알림 -->
+    <color name="success_color">#FF4CAF50</color>              <!-- 초록색 성공 -->
+    <color name="success">#FF4CAF50</color>                    <!-- 성공 색상 별칭 -->
+    <color name="warning_color">#FFFF9800</color>              <!-- 주황색 경고 -->
+    <color name="warning">#FFFF9800</color>                    <!-- 경고 색상 별칭 -->
+    <color name="danger_color">#FFF44336</color>               <!-- 빨간색 위험 -->
+    <color name="info_color">#FF2196F3</color>                 <!-- 파란색 정보 -->
+
+    <!-- 텍스트 색상 -->
+    <color name="text_primary">#FF212121</color>               <!-- 주요 텍스트 -->
+    <color name="text_secondary">#FF757575</color>             <!-- 보조 텍스트 -->
+    <color name="text_hint">#FFBDBDBD</color>                  <!-- 힌트 텍스트 -->
+    <color name="text_disabled">#FFE0E0E0</color>              <!-- 비활성 텍스트 -->
+
+    <!-- 배경 색상 -->
+    <color name="background_primary">#FFFFFF</color>           <!-- 주요 배경 -->
+    <color name="background_secondary">#FFF5F5F5</color>       <!-- 보조 배경 -->
+    <color name="background_card">#FFFFFF</color>              <!-- 카드 배경 -->
+    <color name="background_overlay">#80000000</color>         <!-- 반투명 오버레이 -->
+
+    <!-- 구분선 및 테두리 색상 -->
+    <color name="divider_color">#FFE0E0E0</color>              <!-- 구분선 -->
+    <color name="border_color">#FFBDBDBD</color>               <!-- 테두리 -->
+    <color name="shadow_color">#1A000000</color>               <!-- 그림자 -->
+
+    <!-- QR Scanner 전용 색상들 -->
+    <color name="qr_scanner_background">#FF000000</color>      <!-- QR 스캐너 배경 (검은색) -->
+    <color name="qr_scanner_overlay">#80000000</color>         <!-- QR 스캐너 오버레이 -->
+    <color name="qr_scanner_guide_text">#FFFFFFFF</color>      <!-- QR 스캐너 가이드 텍스트 -->
+
+    <!-- 투명도 색상들 -->
+    <color name="black_overlay">#80000000</color>              <!-- 반투명 검은색 -->
+    <color name="white_semi_transparent">#80FFFFFF</color>     <!-- 반투명 흰색 -->
+    <color name="primary_overlay">#802196F3</color>            <!-- 반투명 파란색 -->
+    <color name="accent_overlay">#80FF9800</color>             <!-- 반투명 주황색 -->
+
+    <!-- FCM 알림 전용 색상들 -->
+    <color name="fcm_general">#FF2196F3</color>                <!-- 일반 알림 -->
+    <color name="fcm_education">#FFFF9800</color>              <!-- 교육 알림 -->
+    <color name="fcm_certificate">#FF4CAF50</color>            <!-- 수료증 알림 -->
+    <color name="fcm_emergency">#FFF44336</color>              <!-- 긴급 알림 -->
+
+    <!-- 상태 표시 색상들 -->
+    <color name="status_online">#FF4CAF50</color>              <!-- 온라인 상태 -->
+    <color name="status_offline">#FF9E9E9E</color>             <!-- 오프라인 상태 -->
+    <color name="status_syncing">#FF2196F3</color>             <!-- 동기화 중 -->
+    <color name="status_error">#FFF44336</color>               <!-- 오류 상태 -->
+
+    <!-- 진행률 표시 색상들 -->
+    <color name="progress_background">#FFE0E0E0</color>        <!-- 진행률 배경 -->
+    <color name="progress_primary">#FF2196F3</color>           <!-- 주요 진행률 -->
+    <color name="progress_secondary">#FFFF9800</color>         <!-- 보조 진행률 -->
+    <color name="progress_complete">#FF4CAF50</color>          <!-- 완료 진행률 -->
+
+    <!-- 카드/컨테이너 색상들 -->
+    <color name="card_background">#FFFFFFFF</color>            <!-- 카드 배경 -->
+    <color name="card_border">#FFE0E0E0</color>                <!-- 카드 테두리 -->
+    <color name="card_shadow">#26000000</color>                <!-- 카드 그림자 -->
+    <color name="card_selected">#FFE3F2FD</color>              <!-- 선택된 카드 -->
+
+    <!-- 입력 필드 색상들 -->
+    <color name="input_background">#FFFFFFFF</color>           <!-- 입력 필드 배경 -->
+    <color name="input_border">#FFE0E0E0</color>               <!-- 입력 필드 테두리 -->
+    <color name="input_border_focused">#FF2196F3</color>       <!-- 포커스된 입력 필드 -->
+    <color name="input_text">#FF212121</color>                 <!-- 입력 텍스트 -->
+    <color name="input_hint">#FF9E9E9E</color>                 <!-- 입력 힌트 -->
+
+    <!-- 개발/디버그 색상 -->
+    <color name="debug_background">#AA000000</color>           <!-- 반투명 검은색 -->
+    <color name="debug_text_color">#FFFFFF</color>             <!-- 흰색 디버그 텍스트 -->
+
+    <!-- 다크 모드 지원 (API 29+) -->
+    <color name="dark_background">#FF121212</color>            <!-- 다크 배경 -->
+    <color name="dark_surface">#FF1E1E1E</color>               <!-- 다크 표면 -->
+    <color name="dark_text_primary">#FFFFFF</color>            <!-- 다크 주요 텍스트 -->
+    <color name="dark_text_secondary">#FFCCCCCC</color>        <!-- 다크 보조 텍스트 -->
+    <color name="dark_primary">#FF64B5F6</color>               <!-- 다크 모드 파란색 -->
+    <color name="dark_accent">#FFFFB74D</color>                <!-- 다크 모드 주황색 -->
+
+    <!-- styles.xml에서 누락된 색상들 추가 -->
+    <color name="colorBackground">#FFFFFF</color>              <!-- 백그라운드 색상 -->
+    <color name="indicatorCornerRadius">#FF2196F3</color>      <!-- 인디케이터 코너 반지름 -->
+    <color name="bottom_sheet_background">#FFFFFF</color>      <!-- 바텀 시트 배경 -->
+
+    <!-- 투명 버튼 배경 -->
+    <color name="button_circle_transparent">#40FFFFFF</color>  <!-- 반투명 흰색 원형 버튼 -->
+
+</resources>

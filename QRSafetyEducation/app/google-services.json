@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "668565008519",
+    "project_id": "jb-safety-education",
+    "storage_bucket": "jb-safety-education.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:668565008519:android:3abc689910029479b74822",
+        "android_client_info": {
+          "package_name": "com.jbsqr.safety"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDFztdgGGyGDeuB_qUTupBI84iWYg4m9BU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

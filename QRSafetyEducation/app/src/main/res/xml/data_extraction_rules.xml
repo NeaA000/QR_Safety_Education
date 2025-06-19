@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<data-extraction-rules>
+    <cloud-backup>
+        <!-- 클라우드 백업 포함 -->
+        <include domain="sharedpref" path="app_preferences.xml" />
+        <include domain="file" path="certificates/" />
+
+        <!-- 클라우드 백업 제외 -->
+        <exclude domain="sharedpref" path="fcm_prefs.xml" />
+        <exclude domain="file" path="logs/" />
+        <exclude domain="cache" />
+    </cloud-backup>
+
+    <device-transfer>
+        <!-- 기기 전송 시 포함 -->
+        <include domain="sharedpref" path="app_preferences.xml" />
+        <include domain="file" path="certificates/" />
+
+        <!-- 기기 전송 시 제외 -->
+        <exclude domain="sharedpref" path="fcm_prefs.xml" />
+        <exclude domain="file" path="logs/" />
+        <exclude domain="cache" />
+    </device-transfer>
+</data-extraction-rules>

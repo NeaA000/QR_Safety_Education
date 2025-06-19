@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<full-backup-content>
+    <!-- 백업에 포함할 파일들 -->
+    <include domain="sharedpref" path="app_preferences.xml" />
+    <include domain="sharedpref" path="app_stats.xml" />
+    <include domain="file" path="certificates/" />
+
+    <!-- 백업에서 제외할 파일들 (보안상 중요한 파일) -->
+    <exclude domain="sharedpref" path="fcm_prefs.xml" />
+    <exclude domain="file" path="logs/" />
+    <exclude domain="cache" />
+    <exclude domain="database" />
+</full-backup-content>

@@ -1,0 +1,275 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- ============================================ -->
+    <!-- 기본 앱 테마 -->
+    <!-- ============================================ -->
+
+    <!-- 메인 앱 테마 (Material 3 호환) -->
+    <style name="Theme.QRSafetyEducation" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/primary_color</item>
+        <item name="colorPrimaryVariant">@color/primary_dark</item>
+        <item name="colorSecondary">@color/accent_color</item>
+        <item name="colorSecondaryVariant">@color/accent_dark</item>
+        <item name="colorSurface">@color/background_card</item>
+        <item name="android:colorBackground">@color/background_primary</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorOnSecondary">@color/white</item>
+        <item name="colorOnSurface">@color/text_primary</item>
+
+        <!-- 상태바 및 네비게이션바 -->
+        <item name="android:statusBarColor">@color/status_bar_color</item>
+        <item name="android:navigationBarColor">@color/primary_dark</item>
+        <item name="android:windowLightStatusBar">false</item>
+
+        <!-- 액션바 설정 -->
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
+    <!-- 스플래시 테마 -->
+    <style name="Theme.QRSafetyEducation.Splash" parent="Theme.QRSafetyEducation">
+        <item name="android:windowBackground">@drawable/splash_background</item>
+        <item name="android:statusBarColor">@color/splash_background</item>
+        <item name="android:navigationBarColor">@color/splash_background</item>
+        <item name="android:windowTranslucentStatus">false</item>
+        <item name="android:windowTranslucentNavigation">false</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+    </style>
+
+    <!-- QR Scanner 전체화면 테마 -->
+    <style name="Theme.QRSafetyEducation.Fullscreen" parent="Theme.QRSafetyEducation">
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowBackground">@color/qr_scanner_background</item>
+        <item name="android:statusBarColor">@color/qr_scanner_background</item>
+        <item name="android:navigationBarColor">@color/qr_scanner_background</item>
+        <item name="android:windowTranslucentStatus">false</item>
+        <item name="android:windowTranslucentNavigation">false</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <!-- API 28+ 노치 대응 -->
+        <item name="android:windowLayoutInDisplayCutoutMode" tools:targetApi="28">shortEdges</item>
+    </style>
+
+    <!-- 다이얼로그 테마 -->
+    <style name="Theme.QRSafetyEducation.Dialog" parent="ThemeOverlay.Material3.Dialog.Alert">
+        <item name="colorPrimary">@color/primary_color</item>
+        <item name="colorSecondary">@color/accent_color</item>
+        <item name="android:textColorPrimary">@color/text_primary</item>
+    </style>
+
+    <!-- ============================================ -->
+    <!-- 버튼 스타일들 -->
+    <!-- ============================================ -->
+
+    <!-- 기본 버튼 스타일 -->
+    <style name="Button" parent="Widget.Material3.Button">
+        <item name="android:textSize">16sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="android:paddingStart">24dp</item>
+        <item name="android:paddingEnd">24dp</item>
+        <item name="cornerRadius">8dp</item>
+    </style>
+
+    <!-- 주요 버튼 -->
+    <style name="Button.Primary" parent="Button">
+        <item name="backgroundTint">@color/button_primary</item>
+        <item name="android:textColor">@color/button_text_color</item>
+        <item name="rippleColor">@color/primary_light</item>
+    </style>
+
+    <!-- 보조 버튼 -->
+    <style name="Button.Secondary" parent="Button">
+        <item name="backgroundTint">@color/button_secondary</item>
+        <item name="android:textColor">@color/button_secondary_text</item>
+        <item name="strokeColor">@color/border_color</item>
+        <item name="strokeWidth">1dp</item>
+    </style>
+
+    <!-- 텍스트 버튼 -->
+    <style name="Button.Text" parent="Widget.Material3.Button.TextButton">
+        <item name="android:textColor">@color/primary_color</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="rippleColor">@color/primary_overlay</item>
+    </style>
+
+    <!-- 원형 버튼 기본 -->
+    <style name="CircleButton">
+        <item name="android:layout_width">48dp</item>
+        <item name="android:layout_height">48dp</item>
+        <item name="android:background">@drawable/button_circle_white</item>
+        <item name="android:scaleType">centerInside</item>
+        <item name="android:padding">12dp</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+    </style>
+
+    <!-- 흰색 원형 버튼 -->
+    <style name="CircleButton.White">
+        <item name="android:background">@drawable/button_circle_white</item>
+        <item name="android:elevation">4dp</item>
+        <item name="android:layout_width">56dp</item>
+        <item name="android:layout_height">56dp</item>
+        <item name="android:padding">16dp</item>
+    </style>
+
+    <!-- FAB 스타일 -->
+    <style name="FloatingActionButton" parent="Widget.Material3.FloatingActionButton.Primary">
+        <item name="backgroundTint">@color/accent_color</item>
+        <item name="tint">@color/white</item>
+        <item name="elevation">6dp</item>
+        <item name="pressedTranslationZ">12dp</item>
+    </style>
+
+    <!-- ============================================ -->
+    <!-- 텍스트 스타일들 -->
+    <!-- ============================================ -->
+
+    <!-- 헤드라인 텍스트 -->
+    <style name="TextAppearance.Headline1" parent="TextAppearance.Material3.HeadlineLarge">
+        <item name="android:textSize">32sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+
+    <style name="TextAppearance.Headline2" parent="TextAppearance.Material3.HeadlineMedium">
+        <item name="android:textSize">24sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+
+    <style name="TextAppearance.Headline3" parent="TextAppearance.Material3.HeadlineSmall">
+        <item name="android:textSize">20sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+
+    <!-- 본문 텍스트 -->
+    <style name="TextAppearance.Body1" parent="TextAppearance.Material3.BodyLarge">
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:lineSpacingExtra">4dp</item>
+    </style>
+
+    <style name="TextAppearance.Body2" parent="TextAppearance.Material3.BodyMedium">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">@color/text_secondary</item>
+        <item name="android:lineSpacingExtra">2dp</item>
+    </style>
+
+    <!-- 캡션 텍스트 -->
+    <style name="TextAppearance.Caption" parent="TextAppearance.Material3.BodySmall">
+        <item name="android:textSize">12sp</item>
+        <item name="android:textColor">@color/text_hint</item>
+    </style>
+
+    <!-- QR Scanner 전용 텍스트 -->
+    <style name="ScanGuideText">
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">@color/qr_scanner_guide_text</item>
+        <item name="android:textAlignment">center</item>
+        <item name="android:gravity">center</item>
+        <item name="android:lineSpacingExtra">4dp</item>
+        <item name="android:padding">16dp</item>
+        <item name="android:background">@drawable/background_scan_guide</item>
+    </style>
+
+    <style name="HeaderText">
+        <item name="android:textSize">18sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:gravity">center</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+    </style>
+
+    <!-- ============================================ -->
+    <!-- 카드 및 컨테이너 스타일들 -->
+    <!-- ============================================ -->
+
+    <!-- 기본 카드 -->
+    <style name="Card" parent="Widget.Material3.CardView.Elevated">
+        <item name="cardCornerRadius">12dp</item>
+        <item name="cardElevation">4dp</item>
+        <item name="cardBackgroundColor">@color/card_background</item>
+        <item name="contentPadding">16dp</item>
+        <item name="android:layout_margin">8dp</item>
+    </style>
+
+    <!-- 강의 카드 -->
+    <style name="Card.Lecture" parent="Card">
+        <item name="cardCornerRadius">16dp</item>
+        <item name="cardElevation">6dp</item>
+        <item name="contentPadding">20dp</item>
+    </style>
+
+    <!-- 수료증 카드 -->
+    <style name="Card.Certificate" parent="Card">
+        <item name="cardBackgroundColor">@color/success_color</item>
+        <item name="cardCornerRadius">8dp</item>
+        <item name="cardElevation">8dp</item>
+    </style>
+
+    <!-- 컨테이너 레이아웃 -->
+    <style name="Container">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:padding">16dp</item>
+        <item name="android:background">@color/background_primary</item>
+    </style>
+
+    <!-- ============================================ -->
+    <!-- 진행률 표시 스타일들 (호환성 개선) -->
+    <!-- ============================================ -->
+
+    <!-- 기본 진행률 표시기 -->
+    <style name="ProgressBar" parent="Widget.Material3.CircularProgressIndicator">
+        <item name="android:layout_width">48dp</item>
+        <item name="android:layout_height">48dp</item>
+        <item name="indicatorColor">@color/progress_primary</item>
+        <item name="trackColor">@color/progress_background</item>
+        <item name="indicatorSize">48dp</item>
+    </style>
+
+    <!-- 로딩 진행률 표시기 -->
+    <style name="LoadingProgressBar" parent="ProgressBar">
+        <item name="android:indeterminateTint">@color/loading_spinner_color</item>
+        <item name="indicatorColor">@color/loading_spinner_color</item>
+    </style>
+
+    <!-- 선형 진행률 표시기 (문제가 있던 속성 제거) -->
+    <style name="LinearProgressBar" parent="Widget.Material3.LinearProgressIndicator">
+        <item name="indicatorColor">@color/progress_primary</item>
+        <item name="trackColor">@color/progress_background</item>
+        <item name="trackThickness">8dp</item>
+        <!-- 문제 속성 제거: indicatorCornerRadius, trackCornerRadius -->
+    </style>
+
+    <!-- ============================================ -->
+    <!-- 리스트 및 리사이클러뷰 스타일들 -->
+    <!-- ============================================ -->
+
+    <!-- 리스트 아이템 -->
+    <style name="ListItem">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:padding">16dp</item>
+        <item name="android:background">?attr/selectableItemBackground</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+    </style>
+
+    <!-- 구분선 -->
+    <style name="Divider">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">1dp</item>
+        <item name="android:background">@color/divider_color</item>
+        <item name="android:layout_marginStart">16dp</item>
+        <item name="android:layout_marginEnd">16dp</item>
+    </style>
+
+</resources>

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 기본 간격 -->
+    <dimen name="spacing_tiny">4dp</dimen>
+    <dimen name="spacing_small">8dp</dimen>
+    <dimen name="spacing_medium">16dp</dimen>
+    <dimen name="spacing_large">24dp</dimen>
+    <dimen name="spacing_extra_large">32dp</dimen>
+
+    <!-- 패딩 -->
+    <dimen name="padding_small">8dp</dimen>
+    <dimen name="padding_medium">16dp</dimen>
+    <dimen name="padding_large">24dp</dimen>
+
+    <!-- 마진 -->
+    <dimen name="margin_small">8dp</dimen>
+    <dimen name="margin_medium">16dp</dimen>
+    <dimen name="margin_large">24dp</dimen>
+
+    <!-- 버튼 -->
+    <dimen name="button_height">48dp</dimen>
+    <dimen name="button_height_large">56dp</dimen>
+    <dimen name="button_corner_radius">8dp</dimen>
+    <dimen name="button_elevation">4dp</dimen>
+
+    <!-- 카드 -->
+    <dimen name="card_corner_radius">12dp</dimen>
+    <dimen name="card_elevation">4dp</dimen>
+    <dimen name="card_padding">16dp</dimen>
+
+    <!-- 텍스트 크기 -->
+    <dimen name="text_size_small">12sp</dimen>
+    <dimen name="text_size_medium">14sp</dimen>
+    <dimen name="text_size_large">16sp</dimen>
+    <dimen name="text_size_title">18sp</dimen>
+    <dimen name="text_size_headline">20sp</dimen>
+
+    <!-- 아이콘 크기 -->
+    <dimen name="icon_size_small">16dp</dimen>
+    <dimen name="icon_size_medium">24dp</dimen>
+    <dimen name="icon_size_large">32dp</dimen>
+    <dimen name="icon_size_extra_large">48dp</dimen>
+
+    <!-- QR Scanner 전용 -->
+    <dimen name="qr_scanner_frame_size">250dp</dimen>
+    <dimen name="qr_scanner_corner_radius">16dp</dimen>
+    <dimen name="qr_scanner_border_width">4dp</dimen>
+
+    <!-- 진행률 표시기 -->
+    <dimen name="progress_bar_size">48dp</dimen>
+    <dimen name="progress_bar_thickness">4dp</dimen>
+
+    <!-- 최소 터치 영역 -->
+    <dimen name="min_touch_target">48dp</dimen>
+
+    <!-- 상태바 높이 -->
+    <dimen name="status_bar_height">24dp</dimen>
+
+    <!-- 네비게이션 바 높이 -->
+    <dimen name="navigation_bar_height">48dp</dimen>
+</resources>
