@@ -167,12 +167,12 @@ router.afterEach((to, from) => {
   // 페이지 변경 분석 (Firebase Analytics)
   if (import.meta.env.PROD) {
     // TODO: Firebase Analytics 페이지뷰 추적
-    console.log(`페이지 뷰: ${to.name}`)
+    console.log(`페이지 뷰: ${String(to.name)}`) // ← 수정
   }
   
   // 네이티브 앱에 페이지 변경 알림
   if (window.isNativeApp && window.Android) {
-    window.Android.showToast(`페이지 이동: ${to.meta.title || to.name}`)
+    window.Android.showToast(`페이지 이동: ${to.meta.title || String(to.name)}`) // ← 수정
   }
 })
 

@@ -5,8 +5,6 @@ import { resolve } from 'path'
 
 export default defineConfig({
   plugins: [vue()],
-  
-  // 경로 별칭 설정
   resolve: {
     alias: {
       '@': resolve(__dirname, 'src'),
