@@ -1,8 +1,11 @@
-// src/stores/auth.ts
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import type { User, ApiResponse } from '@/types/global'
+
+// Firebase 관련 import
+import { getAuth, GoogleAuthProvider, signInWithPopup } from 'firebase/auth'
+import { app as firebaseApp } from '@/services/firebase' // app을 firebaseApp으로 import
 
 export interface LoginCredentials {
   email: string
@@ -52,7 +55,7 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  // 로그인
+  // 이메일/비밀번호 로그인
   async function login(credentials: LoginCredentials): Promise<boolean> {
     isLoading.value = true
     error.value = null
@@ -105,6 +108,51 @@ export const useAuthStore = defineStore('auth', () => {
       throw new Error('로그인에 실패했습니다.')
     } catch (err) {
       error.value = err instanceof Error ? err.message : '로그인 중 오류가 발생했습니다.'
+      return false
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  // 구글 로그인
+  async function signInWithGoogle(): Promise<boolean> {
+    isLoading.value = true
+    error.value = null
+
+    try {
+      const auth = getAuth(firebaseApp ?? undefined)
+      const provider = new GoogleAuthProvider()
+      const result = await signInWithPopup(auth, provider)
+      const googleUser = result.user
+
+      // 실제 서비스에서는 googleUser에서 필요한 정보를 추출해 서버에 회원가입/로그인 처리
+      // 여기서는 더미 사용자로 처리
+      const googleProfile: User = {
+        id: googleUser.uid,
+        email: googleUser.email || '',
+        displayName: googleUser.displayName || 'Google 사용자',
+        photoURL: googleUser.photoURL || '',
+        phoneNumber: googleUser.phoneNumber || '',
+        department: '',
+        position: '',
+        employeeId: '',
+        createdAt: new Date(),
+        lastLoginAt: new Date(),
+        isActive: true,
+        role: 'student'
+      }
+
+      user.value = googleProfile
+      token.value = await googleUser.getIdToken()
+      refreshToken.value = googleUser.refreshToken
+
+      // 로컬 스토리지에 저장
+      localStorage.setItem('authToken', token.value)
+      localStorage.setItem('user', JSON.stringify(user.value))
+
+      return true
+    } catch (err: any) {
+      error.value = err.message || 'Google 로그인에 실패했습니다.'
       return false
     } finally {
       isLoading.value = false
@@ -264,6 +312,7 @@ export const useAuthStore = defineStore('auth', () => {
     // 액션
     initializeAuth,
     login,
+    signInWithGoogle, // 구글 로그인 추가
     register,
     logout,
     clearAuth,
