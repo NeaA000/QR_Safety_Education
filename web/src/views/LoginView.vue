@@ -38,7 +38,7 @@
           >로그인</el-button>
         </el-form-item>
         <el-form-item>
-          <el-button type="text" style="width: 100%" @click="handleForgotPassword">
+          <el-button link style="width: 100%" @click="handleForgotPassword">
             비밀번호 재설정
           </el-button>
         </el-form-item>
@@ -54,7 +54,7 @@
           </el-button>
         </el-form-item>
         <el-form-item>
-          <el-button type="text" style="width: 100%" @click="goRegister">
+          <el-button link style="width: 100%" @click="goRegister">
             회원가입
           </el-button>
         </el-form-item>
@@ -103,6 +103,7 @@ const handleLogin = async () => {
         password: loginForm.password
       })
       if (success) {
+        authStore.initializeAuth() // 인증 상태 재초기화
         ElMessage.success('로그인되었습니다.')
         router.replace('/home')
       } else {
@@ -119,6 +120,7 @@ const handleGoogleLogin = async () => {
   try {
     const success = await authStore.signInWithGoogle()
     if (success) {
+      authStore.initializeAuth() // 인증 상태 재초기화
       ElMessage.success('Google 로그인되었습니다.')
       router.replace('/home')
     } else {
