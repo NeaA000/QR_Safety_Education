@@ -4,7 +4,7 @@
       <!-- 로고 -->
       <div class="logo-wrapper">
         <el-icon :size="80" color="#409EFF">
-          <QrCode />
+          <Scan />
         </el-icon>
       </div>
       
@@ -38,13 +38,13 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-// 아이콘 이름 수정: Qrcode -> QrCode
-import { QrCode } from '@element-plus/icons-vue'
+// Qrcode 아이콘 대신 실제 존재하는 Scan 아이콘 사용
+import { Scan } from '@element-plus/icons-vue'
 
 export default {
   name: 'SplashView',
   components: {
-    QrCode
+    Scan
   },
   setup() {
     const router = useRouter()
@@ -65,35 +65,46 @@ export default {
       ]
       
       for (const step of steps) {
+        await new Promise(resolve => setTimeout(resolve, step.delay))
         loadingProgress.value = step.progress
         statusMessage.value = step.message
-        await new Promise(resolve => setTimeout(resolve, step.delay))
       }
     }
     
-    onMounted(async () => {
+    // 초기화 및 라우팅
+    const initialize = async () => {
       try {
-        // TODO: [보안강화] 앱 시작 시 보안 검증
-        // - 디바이스 무결성 확인
-        // - 최소 OS 버전 확인
-        // - 필수 권한 확인
-        
-        // 로딩 애니메이션 시작
+        // 로딩 시작
         await simulateLoading()
         
-        // 인증 상태 확인 후 라우팅
-        setTimeout(() => {
-          if (authStore.isAuthenticated) {
-            router.replace('/dashboard')
-          } else {
-            router.replace('/login')
-          }
-        }, 500)
+        // 잠시 대기
+        await new Promise(resolve => setTimeout(resolve, 500))
+        
+        // 인증 상태 확인
+        const isAuthenticated = await authStore.checkAuthStatus?.()
+        
+        // 라우팅
+        if (isAuthenticated) {
+          console.log('인증됨 - 홈으로 이동')
+          router.push('/home')
+        } else {
+          console.log('미인증 - 로그인으로 이동')
+          router.push('/login')
+        }
       } catch (error) {
-        console.error('스플래시 화면 오류:', error)
-        // TODO: [보안강화] 오류 발생 시 안전한 처리
-        router.replace('/login')
+        console.error('초기화 실패:', error)
+        statusMessage.value = '앱 시작 실패'
+        
+        // 에러 발생 시 로그인 페이지로
+        setTimeout(() => {
+          router.push('/login')
+        }, 2000)
       }
+    }
+    
+    onMounted(() => {
+      console.log('SplashView 마운트됨')
+      initialize()
     })
     
     return {
@@ -107,14 +118,15 @@ export default {
 
 <style scoped>
 .splash-container {
+  height: 100vh;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
-  min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 2rem;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
 }
 
 .splash-content {
@@ -124,81 +136,106 @@ export default {
   justify-content: center;
   align-items: center;
   text-align: center;
-  max-width: 400px;
+  padding: 20px;
   width: 100%;
+  max-width: 400px;
 }
 
 .logo-wrapper {
-  background: white;
-  border-radius: 50%;
-  width: 120px;
-  height: 120px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 2rem;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  margin-bottom: 30px;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 .app-title {
-  font-size: 2rem;
-  font-weight: bold;
-  margin: 0 0 0.5rem 0;
+  font-size: 32px;
+  font-weight: 700;
+  color: #303133;
+  margin: 0 0 10px 0;
+  letter-spacing: -0.5px;
 }
 
 .app-subtitle {
-  font-size: 1rem;
-  opacity: 0.9;
-  margin-bottom: 3rem;
+  font-size: 16px;
+  color: #606266;
+  margin: 0 0 40px 0;
 }
 
 .loading-wrapper {
   width: 200px;
-  margin-bottom: 1rem;
+  margin-bottom: 20px;
 }
 
 .status-message {
-  font-size: 0.875rem;
-  opacity: 0.8;
-  height: 20px;
+  font-size: 14px;
+  color: #909399;
+  margin: 0;
+  min-height: 20px;
 }
 
 .splash-footer {
+  padding: 20px;
   text-align: center;
 }
 
 .version {
-  font-size: 0.75rem;
-  opacity: 0.7;
-  margin-bottom: 0.25rem;
+  font-size: 12px;
+  color: #909399;
+  margin: 0 0 5px 0;
 }
 
 .copyright {
-  font-size: 0.75rem;
-  opacity: 0.5;
+  font-size: 12px;
+  color: #C0C4CC;
+  margin: 0;
 }
 
-/* 애니메이션 */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
+/* 반응형 디자인 */
+@media (max-width: 480px) {
+  .app-title {
+    font-size: 28px;
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+  
+  .app-subtitle {
+    font-size: 14px;
+  }
+  
+  .logo-wrapper {
+    margin-bottom: 20px;
   }
 }
 
-.logo-wrapper {
-  animation: fadeIn 0.8s ease-out;
-}
-
-.app-title {
-  animation: fadeIn 0.8s ease-out 0.2s both;
-}
-
-.app-subtitle {
-  animation: fadeIn 0.8s ease-out 0.4s both;
+/* 다크 모드 지원 */
+@media (prefers-color-scheme: dark) {
+  .splash-container {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+  }
+  
+  .app-title {
+    color: #ffffff;
+  }
+  
+  .app-subtitle {
+    color: #b0b0b0;
+  }
+  
+  .status-message {
+    color: #808080;
+  }
+  
+  .copyright {
+    color: #606060;
+  }
 }
 </style>
