@@ -3,11 +3,18 @@
     <!-- 헤더 -->
     <div class="header">
       <div class="header-content">
-        <h1 class="page-title">안전교육 관리</h1>
-        <el-dropdown trigger="click" @command="handleCommand">
-          <el-button circle>
-            <el-icon><User /></el-icon>
-          </el-button>
+        <h1 class="page-title">QR 안전교육</h1>
+        <el-dropdown @command="handleCommand">
+          <span class="el-dropdown-link">
+            <el-avatar 
+              :src="userAvatar" 
+              :icon="UserFilled" 
+              :size="32"
+            />
+            <el-icon class="el-icon--right">
+              <arrow-down />
+            </el-icon>
+          </span>
           <template #dropdown>
             <el-dropdown-menu>
               <el-dropdown-item command="profile">
@@ -33,34 +40,63 @@
       <!-- 사용자 정보 카드 -->
       <el-card class="user-info-card">
         <div class="user-info">
-          <el-avatar :size="60" :src="userAvatar">
-            <el-icon :size="30"><UserFilled /></el-icon>
-          </el-avatar>
+          <el-avatar 
+            :src="userAvatar" 
+            :icon="UserFilled" 
+            :size="56"
+          />
           <div class="user-details">
-            <h2>{{ userName }}님, 환영합니다!</h2>
+            <h2>{{ userName }}님, 안녕하세요!</h2>
             <p>{{ userEmail }}</p>
           </div>
         </div>
       </el-card>
 
-      <!-- QR 스캔 섹션 -->
+      <!-- QR 스캔 카드 -->
       <el-card class="qr-scan-card">
         <div class="qr-scan-content">
-          <el-icon :size="48" color="#409EFF">
-            <CameraFilled />
+          <el-icon :size="48">
+            <Camera />
           </el-icon>
-          <h3>강의 QR 코드 스캔</h3>
-          <p>QR 코드를 스캔하여 안전교육을 시작하세요</p>
+          <h3>QR 코드로 강의 시작</h3>
+          <p>QR 코드를 스캔하여 바로 강의를 시작하세요</p>
           <el-button 
-            type="primary" 
+            type="primary"
             size="large"
-            @click="handleQRScan"
             :loading="isScanning"
+            @click="handleQRScan"
           >
-            <el-icon class="el-icon--left"><Scan /></el-icon>
-            QR 코드 스캔
+            <el-icon><CameraFilled /></el-icon>
+            {{ isScanning ? '스캔 중...' : 'QR 스캔' }}
           </el-button>
         </div>
+      </el-card>
+
+      <!-- 학습 통계 카드 -->
+      <el-card class="stats-card">
+        <template #header>
+          <span>학습 현황</span>
+        </template>
+        <el-row :gutter="20">
+          <el-col :span="8">
+            <div class="stat-item">
+              <div class="stat-value">{{ lectureStats.completedLectures }}</div>
+              <div class="stat-label">완료한 강의</div>
+            </div>
+          </el-col>
+          <el-col :span="8">
+            <div class="stat-item">
+              <div class="stat-value">{{ lectureStats.totalLectures }}</div>
+              <div class="stat-label">전체 강의</div>
+            </div>
+          </el-col>
+          <el-col :span="8">
+            <div class="stat-item">
+              <div class="stat-value">{{ lectureStats.completionRate }}%</div>
+              <div class="stat-label">완료율</div>
+            </div>
+          </el-col>
+        </el-row>
       </el-card>
 
       <!-- 빠른 메뉴 -->
@@ -69,10 +105,10 @@
           <el-col :span="12">
             <el-card shadow="hover" @click="goToLectures" class="menu-card">
               <div class="menu-item">
-                <el-icon :size="32" color="#67C23A">
+                <el-icon :size="32" color="#409EFF">
                   <VideoPlay />
                 </el-icon>
-                <span>내 강의</span>
+                <span>강의 목록</span>
               </div>
             </el-card>
           </el-col>
@@ -98,9 +134,9 @@
           </div>
         </template>
         
-        <div v-if="recentLectures.length > 0">
+        <div v-if="recentLecturesData.length > 0">
           <div 
-            v-for="lecture in recentLectures" 
+            v-for="lecture in recentLecturesData" 
             :key="lecture.id"
             class="activity-item"
             @click="goToLecture(lecture.id)"
@@ -122,7 +158,7 @@
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -132,205 +168,145 @@ import {
   Setting, 
   SwitchButton, 
   CameraFilled,
-  Scan,
+  Camera,  // Scan 대신 Camera 사용
   VideoPlay,
-  Medal
+  Medal,
+  ArrowDown
 } from '@element-plus/icons-vue'
 import { useAuthStore } from '@/stores/auth'
 import { useLectureStore } from '@/stores/lectures'
 import nativeBridge from '@/services/native-bridge'
 
-export default {
-  name: 'HomeView',
-  components: {
-    User,
-    UserFilled,
-    Setting,
-    SwitchButton,
-    CameraFilled,
-    Scan,
-    VideoPlay,
-    Medal
-  },
-  setup() {
-    const router = useRouter()
-    const authStore = useAuthStore()
-    const lectureStore = useLectureStore()
+// 스토어 및 라우터
+const router = useRouter()
+const authStore = useAuthStore()
+const lectureStore = useLectureStore()
+
+// 상태
+const isScanning = ref(false)
+
+// 계산된 속성
+const userName = computed(() => authStore.user?.displayName || '사용자')
+const userEmail = computed(() => authStore.user?.email || '')
+const userAvatar = computed(() => authStore.user?.photoURL || '')
+const lectureStats = computed(() => lectureStore.lectureStats)
+const recentLecturesData = computed(() => lectureStore.recentLectures)
+
+/**
+ * QR 코드 스캔
+ */
+const handleQRScan = async (): Promise<void> => {
+  try {
+    isScanning.value = true
     
-    // 상태
-    const isScanning = ref(false)
-    const recentLectures = ref([])
+    // 카메라 권한 확인
+    if (nativeBridge.isNativeApp()) {
+      const hasPermission = await nativeBridge.requestCameraPermission()
+      if (!hasPermission) {
+        ElMessage.warning('카메라 권한이 필요합니다.')
+        return
+      }
+    }
+
+    // QR 스캔 실행
+    const result = await nativeBridge.scanQR()
     
-    // 계산된 속성
-    const userName = computed(() => authStore.user?.displayName || '사용자')
-    const userEmail = computed(() => authStore.user?.email || '')
-    const userAvatar = computed(() => authStore.user?.photoURL || '')
-    
-    /**
-     * QR 코드 스캔
-     */
-    const handleQRScan = async () => {
+    if (result) {
       try {
-        isScanning.value = true
+        const qrData = JSON.parse(result)
         
-        // 카메라 권한 확인
-        if (nativeBridge.isNativeApp()) {
-          const hasPermission = await nativeBridge.requestCameraPermission()
-          if (!hasPermission) {
-            ElMessage.warning('카메라 권한이 필요합니다.')
-            return
-          }
-        }
-        
-        // QR 스캐너 실행
-        const result = await nativeBridge.scanQR()
-        
-        if (result && result.data) {
-          // QR 데이터 처리
-          await processQRCode(result.data)
-        }
-        
-      } catch (error) {
-        console.error('QR 스캔 실패:', error)
-        
-        if (error.message?.includes('취소')) {
-          // 사용자가 취소한 경우 메시지 표시 안 함
+        // QR 데이터 검증
+        if (qrData.type === 'lecture' && qrData.lectureId) {
+          // 강의 페이지로 이동
+          await router.push(`/lectures/${qrData.lectureId}/watch`)
+          ElMessage.success('강의를 시작합니다.')
         } else {
-          ElMessage.error('QR 스캔에 실패했습니다.')
+          ElMessage.error('유효하지 않은 QR 코드입니다.')
         }
-      } finally {
-        isScanning.value = false
+      } catch (parseError) {
+        console.error('QR 데이터 파싱 오류:', parseError)
+        ElMessage.error('QR 코드 형식이 올바르지 않습니다.')
       }
     }
     
-    /**
-     * QR 코드 데이터 처리
-     */
-    const processQRCode = async (qrData) => {
-      try {
-        // QR 데이터 파싱
-        const data = JSON.parse(qrData)
-        
-        // QR 타입 확인
-        if (data.type === 'lecture' && data.lectureId) {
-          // 강의 정보 조회
-          const lecture = await lectureStore.getLectureById(data.lectureId)
-          
-          if (lecture) {
-            // 강의 신청/시작 확인
-            const confirmed = await ElMessageBox.confirm(
-              `"${lecture.title}" 강의를 시작하시겠습니까?`,
-              '강의 시작',
-              {
-                confirmButtonText: '시작',
-                cancelButtonText: '취소',
-                type: 'info'
-              }
-            )
-            
-            if (confirmed) {
-              // 강의 화면으로 이동
-              router.push({
-                name: 'video-player',
-                params: { id: data.lectureId }
-              })
-            }
-          } else {
-            ElMessage.error('유효하지 않은 강의 코드입니다.')
-          }
-        } else {
-          ElMessage.error('인식할 수 없는 QR 코드입니다.')
-        }
-        
-      } catch (error) {
-        console.error('QR 데이터 처리 실패:', error)
-        ElMessage.error('QR 코드 처리 중 오류가 발생했습니다.')
-      }
-    }
-    
-    /**
-     * 드롭다운 명령 처리
-     */
-    const handleCommand = (command) => {
-      switch (command) {
-        case 'profile':
-          router.push('/profile')
-          break
-        case 'settings':
-          router.push('/settings')
-          break
-        case 'logout':
-          handleLogout()
-          break
-      }
-    }
-    
-    /**
-     * 로그아웃
-     */
-    const handleLogout = async () => {
-      try {
-        await ElMessageBox.confirm(
-          '로그아웃하시겠습니까?',
-          '로그아웃',
-          {
-            confirmButtonText: '확인',
-            cancelButtonText: '취소',
-            type: 'warning'
-          }
-        )
-        
-        await authStore.signOut()
-        router.replace('/login')
-        ElMessage.success('로그아웃되었습니다.')
-        
-      } catch (error) {
-        // 취소한 경우
-      }
-    }
-    
-    /**
-     * 페이지 이동
-     */
-    const goToLectures = () => router.push('/lectures')
-    const goToCertificates = () => router.push('/certificates')
-    const goToLecture = (id) => router.push(`/lectures/${id}/watch`)
-    
-    /**
-     * 최근 학습 내역 로드
-     */
-    const loadRecentLectures = async () => {
-      try {
-        recentLectures.value = await lectureStore.getRecentLectures()
-      } catch (error) {
-        console.error('최근 학습 내역 로드 실패:', error)
-      }
-    }
-    
-    // 라이프사이클
-    onMounted(() => {
-      loadRecentLectures()
-    })
-    
-    return {
-      // 상태
-      isScanning,
-      recentLectures,
-      
-      // 계산된 속성
-      userName,
-      userEmail,
-      userAvatar,
-      
-      // 메서드
-      handleQRScan,
-      handleCommand,
-      goToLectures,
-      goToCertificates,
-      goToLecture
-    }
+  } catch (error) {
+    console.error('QR 스캔 오류:', error)
+    ElMessage.error('QR 스캔에 실패했습니다.')
+  } finally {
+    isScanning.value = false
   }
 }
+
+/**
+ * 드롭다운 메뉴 처리
+ */
+const handleCommand = async (command: string): Promise<void> => {
+  switch (command) {
+    case 'profile':
+      await router.push('/profile')
+      break
+      
+    case 'settings':
+      ElMessage.info('설정 기능 준비 중입니다.')
+      break
+      
+    case 'logout':
+      await handleLogout()
+      break
+  }
+}
+
+/**
+ * 로그아웃 처리
+ */
+const handleLogout = async (): Promise<void> => {
+  try {
+    await ElMessageBox.confirm(
+      '정말 로그아웃하시겠습니까?',
+      '로그아웃',
+      {
+        confirmButtonText: '확인',
+        cancelButtonText: '취소',
+        type: 'warning'
+      }
+    )
+    
+    await authStore.logout()
+    await router.replace('/login')
+    ElMessage.success('로그아웃되었습니다.')
+    
+  } catch (error) {
+    // 취소한 경우 - 아무것도 하지 않음
+  }
+}
+
+/**
+ * 페이지 이동
+ */
+const goToLectures = (): void => {
+  router.push('/lectures')
+}
+
+const goToCertificates = (): void => {
+  router.push('/certificates')
+}
+
+const goToLecture = (id: string): void => {
+  router.push(`/lectures/${id}/watch`)
+}
+
+/**
+ * 초기화
+ */
+onMounted(async () => {
+  try {
+    // 강의 스토어 초기화
+    await lectureStore.initialize()
+  } catch (error) {
+    console.error('홈 화면 초기화 실패:', error)
+    ElMessage.error('데이터를 불러오는데 실패했습니다.')
+  }
+})
 </script>
 
 <style scoped>
@@ -361,6 +337,14 @@ export default {
   font-weight: 600;
   color: #303133;
   margin: 0;
+}
+
+.el-dropdown-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  color: #606266;
 }
 
 .main-content {
@@ -424,6 +408,27 @@ export default {
 
 .qr-scan-content .el-button:hover {
   background: #f5f5f5;
+}
+
+.stats-card {
+  margin-bottom: 20px;
+}
+
+.stat-item {
+  text-align: center;
+  padding: 16px 0;
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: 600;
+  color: #409EFF;
+  margin-bottom: 4px;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: #909399;
 }
 
 .quick-menu {
@@ -504,6 +509,10 @@ export default {
   }
   
   .quick-menu .el-col {
+    margin-bottom: 16px;
+  }
+  
+  .stats-card .el-col {
     margin-bottom: 16px;
   }
 }
