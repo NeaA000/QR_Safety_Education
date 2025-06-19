@@ -81,7 +81,9 @@
               class="social-button google-button"
             >
               <template #icon>
-                <img src="/icons/google.svg" alt="Google" class="social-icon" v-if="!isSocialLoading.google">
+                <el-icon v-if="!isSocialLoading.google">
+                  <ChromeFilled />
+                </el-icon>
               </template>
               Google로 로그인
             </el-button>
@@ -93,7 +95,9 @@
               class="social-button naver-button"
             >
               <template #icon>
-                <img src="/icons/naver.svg" alt="Naver" class="social-icon" v-if="!isSocialLoading.naver">
+                <el-icon v-if="!isSocialLoading.naver">
+                  <Platform />
+                </el-icon>
               </template>
               네이버로 로그인
             </el-button>
@@ -171,7 +175,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Shield, Message, Lock, Scan } from '@element-plus/icons-vue'
+import { Shield, Message, Lock, Scan, ChromeFilled, Platform } from '@element-plus/icons-vue'
 import { useAuthStore } from '@/stores/auth'
 import nativeBridge from '@/services/native-bridge'
 import { logAnalyticsEvent } from '@/services/firebase'
@@ -182,7 +186,9 @@ export default {
     Shield,
     Message,
     Lock,
-    Scan
+    Scan,
+    ChromeFilled,
+    Platform
   },
   setup() {
     const router = useRouter()
@@ -642,12 +648,6 @@ export default {
 .naver-button:hover {
   background: #02b151;
   border-color: #02b151;
-}
-
-.social-icon {
-  width: 20px;
-  height: 20px;
-  margin-right: 8px;
 }
 
 .register-section {
