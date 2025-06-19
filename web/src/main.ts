@@ -1,4 +1,4 @@
-// src/main.ts - 기존 firebase.ts 사용 버전
+// src/main.ts - CSS 경로 수정 버전
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import ElementPlus from 'element-plus'
@@ -7,9 +7,9 @@ import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 import App from './App.vue'
 import router from './router'
 
-// CSS imports
+// CSS imports - 올바른 경로로 수정
 import 'element-plus/dist/index.css'
-import './assets/main.css'
+import './assets/styles/main.css'  // styles 폴더 경로로 수정
 
 // Firebase 초기화 (기존 firebase.ts 사용)
 import './services/firebase'
