@@ -56,7 +56,7 @@
       <el-card class="qr-scan-card">
         <div class="qr-scan-content">
           <el-icon :size="48">
-            <Camera />
+            <Search />
           </el-icon>
           <h3>QR 코드로 강의 시작</h3>
           <p>QR 코드를 스캔하여 바로 강의를 시작하세요</p>
@@ -168,7 +168,7 @@ import {
   Setting, 
   SwitchButton, 
   CameraFilled,
-  Camera,  // Scan 대신 Camera 사용
+  Search,  // QR 스캔 아이콘으로 Search 사용
   VideoPlay,
   Medal,
   ArrowDown
