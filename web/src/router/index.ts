@@ -19,7 +19,7 @@ const routes: RouteRecordRaw[] = [
   {
   path: '/',
   redirect: '/login'
-},
+  },
   {
     path: '/register',
     name: 'register',
