@@ -1,433 +1,221 @@
-package com.jbsqr.safety.bridge
+package com.qrsafety.education.bridge
 
 import android.content.Context
+import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.webkit.JavascriptInterface
-import android.webkit.WebView
-import com.google.gson.Gson
-import com.google.gson.JsonObject
-import com.jbsqr.safety.modules.*
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import android.widget.Toast
+import org.json.JSONException
+import org.json.JSONObject
 
 /**
- * JavaScript Interface for Native ↔ Web Communication
- * Vue.js 웹앱에서 window.Android.methodName() 형태로 호출 가능
+ * JavaScript와 Android Native 간의 브릿지 인터페이스
+ * WebView에서 호출 가능한 메서드들을 정의
  */
-class JavaScriptInterface(
-    private val context: Context,
-    private val authModule: AuthModule,
-    private val qrScannerModule: QRScannerModule,
-    private val storageModule: StorageModule,
-    private val motionSensorModule: MotionSensorModule,
-    private val notificationModule: NotificationModule
-) {
-
-    companion object {
-        private const val TAG = "JavaScriptInterface"
-    }
-
-    private val gson = Gson()
-    private val mainScope = CoroutineScope(Dispatchers.Main)
-
-    // WebView는 setWebView 메서드를 통해 나중에 설정
-    private var webView: WebView? = null
+class JavaScriptInterface(private val context: Context) {
+    private val mainHandler = Handler(Looper.getMainLooper())
 
     /**
-     * WebView 인스턴스 설정 (초기화 후 호출)
-     */
-    fun setWebView(webView: WebView) {
-        this.webView = webView
-        Log.d(TAG, "WebView 인스턴스 설정 완료")
-    }
-
-    // ================================
-    // QR Scanner 관련 메서드
-    // ================================
-
-    /**
-     * QR 코드 스캔 시작
-     * JavaScript: window.Android.scanQR()
+     * QR 코드 스캔
+     * TODO: 보안 - QR 데이터 검증
+     * TODO: 보안 - 악성 URL 차단
      */
     @JavascriptInterface
-    fun scanQR() {
-        Log.d(TAG, "QR 스캔 요청")
+    fun scanQR(): String {
+        Log.d(TAG, "scanQR 호출됨")
 
-        mainScope.launch {
+
+        // TODO: 실제 QR 스캔 구현
+        // 임시 반환값
+        return "{\"type\":\"lecture\",\"lectureId\":\"test-001\"}"
+    }
+
+    /**
+     * 파일 저장
+     * TODO: 보안 - 파일 경로 검증 (디렉토리 탐색 공격 방지)
+     * TODO: 보안 - 파일 크기 제한
+     * TODO: 보안 - 허용된 파일 형식만 저장
+     */
+    @JavascriptInterface
+    fun saveFile(data: String?, filename: String) {
+        Log.d(TAG, "saveFile 호출됨: $filename")
+
+
+        // UI 스레드에서 실행
+        mainHandler.post {
+            // TODO: 실제 파일 저장 구현
+            showToast("파일 저장: $filename")
+        }
+    }
+
+    /**
+     * 토스트 메시지 표시
+     * TODO: 보안 - XSS 방지를 위한 메시지 이스케이프
+     */
+    @JavascriptInterface
+    fun showToast(message: String?) {
+        mainHandler.post {
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    @get:JavascriptInterface
+    val deviceInfo: String
+        /**
+         * 디바이스 정보 조회
+         * TODO: 보안 - 민감한 정보 필터링
+         * TODO: 보안 - 디바이스 핑거프린팅 방지
+         */
+        get() {
             try {
-                qrScannerModule.startScan { result ->
-                    // 스캔 결과를 JavaScript로 전달
-                    val jsonResult = gson.toJson(mapOf(
-                        "success" to true,
-                        "data" to result,
-                        "timestamp" to System.currentTimeMillis()
-                    ))
+                val deviceInfo = JSONObject()
+                deviceInfo.put("platform", "android")
+                deviceInfo.put("version", Build.VERSION.RELEASE)
+                deviceInfo.put("model", Build.MODEL)
+                deviceInfo.put("manufacturer", Build.MANUFACTURER)
+                deviceInfo.put("uuid", "android-" + System.currentTimeMillis())
+                deviceInfo.put("isVirtual", false)
 
-                    callJavaScript("window.onQRScanned", jsonResult)
-                }
-            } catch (e: Exception) {
-                Log.e(TAG, "QR 스캔 오류", e)
-                val errorResult = gson.toJson(mapOf(
-                    "success" to false,
-                    "error" to e.message,
-                    "timestamp" to System.currentTimeMillis()
-                ))
-
-                callJavaScript("window.onQRError", errorResult)
+                return deviceInfo.toString()
+            } catch (e: JSONException) {
+                Log.e(TAG, "디바이스 정보 생성 실패", e)
+                return "{}"
             }
         }
-    }
 
     /**
-     * QR 스캔 중지
-     * JavaScript: window.Android.stopQRScan()
+     * 권한 요청
+     * TODO: 보안 - 권한 요청 로깅
+     * TODO: 보안 - 최소 권한 원칙 적용
      */
     @JavascriptInterface
-    fun stopQRScan() {
-        Log.d(TAG, "QR 스캔 중지 요청")
-        qrScannerModule.stopScan()
+    fun requestPermission(permission: String): Boolean {
+        Log.d(TAG, "requestPermission 호출됨: $permission")
+
+
+        // TODO: 실제 권한 요청 구현
+        return true
     }
-
-    // ================================
-    // Motion Sensor 관련 메서드
-    // ================================
-
-    /**
-     * 기기 흔들림 감지 시작
-     * JavaScript: window.Android.startMotionDetection()
-     */
-    @JavascriptInterface
-    fun startMotionDetection() {
-        Log.d(TAG, "모션 감지 시작")
-
-        motionSensorModule.startMotionDetection { isShaking ->
-            val motionData = gson.toJson(mapOf(
-                "isShaking" to isShaking,
-                "timestamp" to System.currentTimeMillis()
-            ))
-
-            if (isShaking) {
-                callJavaScript("window.onMotionDetected", motionData)
-            } else {
-                callJavaScript("window.onMotionStopped", motionData)
-            }
-        }
-    }
-
-    /**
-     * 기기 흔들림 감지 중지
-     * JavaScript: window.Android.stopMotionDetection()
-     */
-    @JavascriptInterface
-    fun stopMotionDetection() {
-        Log.d(TAG, "모션 감지 중지")
-        motionSensorModule.stopMotionDetection()
-    }
-
-    // ================================
-    // 파일 저장 관련 메서드
-    // ================================
 
     /**
      * 파일 다운로드
-     * JavaScript: window.Android.downloadFile(url, filename)
+     * TODO: 보안 - URL 화이트리스트 검증
+     * TODO: 보안 - HTTPS 강제
+     * TODO: 보안 - 다운로드 크기 제한
      */
     @JavascriptInterface
-    fun downloadFile(url: String, filename: String) {
-        Log.d(TAG, "파일 다운로드 요청: $filename")
+    fun downloadFile(url: String, filename: String): String {
+        Log.d(TAG, "downloadFile 호출됨: $url")
 
-        mainScope.launch {
+
+        // TODO: 실제 다운로드 구현
+        return "/storage/emulated/0/Download/$filename"
+    }
+
+    /**
+     * 파일 열기
+     * TODO: 보안 - 파일 경로 검증
+     * TODO: 보안 - 파일 형식 검증
+     */
+    @JavascriptInterface
+    fun openFile(path: String): Boolean {
+        Log.d(TAG, "openFile 호출됨: $path")
+
+
+        // TODO: 실제 파일 열기 구현
+        return true
+    }
+
+    @get:JavascriptInterface
+    val appVersion: String
+        /**
+         * 앱 버전 정보
+         * TODO: 보안 - 버전 정보 난독화 고려
+         */
+        get() {
             try {
-                storageModule.downloadFile(url, filename) { progress, filePath ->
-                    val progressData = gson.toJson(mapOf(
-                        "progress" to progress,
-                        "filename" to filename,
-                        "filePath" to filePath,
-                        "timestamp" to System.currentTimeMillis()
-                    ))
+                val versionInfo = JSONObject()
+                versionInfo.put("version", "1.0.0")
+                versionInfo.put("buildNumber", "1")
+                versionInfo.put("packageName", context.packageName)
 
-                    if (progress >= 100) {
-                        callJavaScript("window.onDownloadComplete", progressData)
-                    } else {
-                        callJavaScript("window.onDownloadProgress", progressData)
-                    }
-                }
-            } catch (e: Exception) {
-                Log.e(TAG, "파일 다운로드 오류", e)
-                val errorData = gson.toJson(mapOf(
-                    "success" to false,
-                    "error" to e.message,
-                    "filename" to filename
-                ))
-
-                callJavaScript("window.onDownloadError", errorData)
+                return versionInfo.toString()
+            } catch (e: JSONException) {
+                Log.e(TAG, "버전 정보 생성 실패", e)
+                return "{}"
             }
         }
+
+    /**
+     * 권한 확인
+     * TODO: 보안 - 권한 상태 캐싱으로 성능 개선
+     */
+    @JavascriptInterface
+    fun checkPermission(permission: String): Boolean {
+        Log.d(TAG, "checkPermission 호출됨: $permission")
+
+
+        // TODO: 실제 권한 확인 구현
+        return true
     }
 
     /**
-     * 수료증 PDF 생성 및 저장
-     * JavaScript: window.Android.generateCertificate(data)
+     * 알림 다이얼로그
+     * TODO: 보안 - 피싱 방지를 위한 도메인 표시
+     * TODO: 보안 - 알림 남용 방지
      */
     @JavascriptInterface
-    fun generateCertificate(certificateData: String) {
-        Log.d(TAG, "수료증 생성 요청")
+    fun showAlert(title: String, message: String): Boolean {
+        Log.d(TAG, "showAlert 호출됨: $title")
 
-        mainScope.launch {
-            try {
-                val data = gson.fromJson(certificateData, JsonObject::class.java)
 
-                storageModule.generateCertificatePDF(data) { success, filePath ->
-                    val result = gson.toJson(mapOf(
-                        "success" to success,
-                        "filePath" to filePath,
-                        "certificateData" to data,
-                        "timestamp" to System.currentTimeMillis()
-                    ))
+        // TODO: 실제 다이얼로그 구현
+        mainHandler.post {
+            showToast("$title: $message")
+        }
 
-                    if (success) {
-                        callJavaScript("window.onCertificateGenerated", result)
-                    } else {
-                        callJavaScript("window.onCertificateError", result)
-                    }
-                }
-            } catch (e: Exception) {
-                Log.e(TAG, "수료증 생성 오류", e)
-                val errorResult = gson.toJson(mapOf(
-                    "success" to false,
-                    "error" to e.message
-                ))
+        return true
+    }
 
-                callJavaScript("window.onCertificateError", errorResult)
-            }
+    /**
+     * 네트워크 상태 확인
+     * TODO: 보안 - VPN 상태 확인
+     * TODO: 보안 - 안전한 네트워크 연결 확인
+     */
+    @JavascriptInterface
+    fun checkNetworkStatus(): String {
+        try {
+            val networkStatus = JSONObject()
+            networkStatus.put("isConnected", true)
+            networkStatus.put("type", "wifi")
+            networkStatus.put("strength", 4)
+
+            return networkStatus.toString()
+        } catch (e: JSONException) {
+            Log.e(TAG, "네트워크 상태 생성 실패", e)
+            return "{\"isConnected\":false,\"type\":\"none\"}"
         }
     }
 
-    // ================================
-    // 인증 관련 메서드
-    // ================================
+    @get:JavascriptInterface
+    val fCMToken: String
+        /**
+         * FCM 토큰 조회
+         * TODO: 보안 - 토큰 암호화
+         * TODO: 보안 - 토큰 갱신 관리
+         * TODO: 보안 - 토큰 유효성 검증
+         */
+        get() {
+            Log.d(TAG, "getFCMToken 호출됨")
 
-    /**
-     * 구글 소셜 로그인
-     * JavaScript: window.Android.loginWithGoogle()
-     */
-    @JavascriptInterface
-    fun loginWithGoogle() {
-        Log.d(TAG, "구글 로그인 요청")
 
-        mainScope.launch {
-            authModule.signInWithGoogle { success, user ->
-                val result = gson.toJson(mapOf(
-                    "success" to success,
-                    "user" to user,
-                    "timestamp" to System.currentTimeMillis()
-                ))
-
-                if (success) {
-                    callJavaScript("window.onLoginSuccess", result)
-                } else {
-                    callJavaScript("window.onLoginError", result)
-                }
-            }
-        }
-    }
-
-    /**
-     * 로그아웃
-     * JavaScript: window.Android.logout()
-     */
-    @JavascriptInterface
-    fun logout() {
-        Log.d(TAG, "로그아웃 요청")
-
-        authModule.signOut { success ->
-            val result = gson.toJson(mapOf(
-                "success" to success,
-                "timestamp" to System.currentTimeMillis()
-            ))
-
-            callJavaScript("window.onLogoutComplete", result)
-        }
-    }
-
-    /**
-     * 현재 사용자 정보 가져오기
-     * JavaScript: window.Android.getCurrentUser()
-     */
-    @JavascriptInterface
-    fun getCurrentUser(): String {
-        Log.d(TAG, "현재 사용자 정보 요청")
-
-        val user = authModule.getCurrentUser()
-        return gson.toJson(mapOf(
-            "success" to (user != null),
-            "user" to user,
-            "timestamp" to System.currentTimeMillis()
-        ))
-    }
-
-    // ================================
-    // 알림 관련 메서드
-    // ================================
-
-    /**
-     * 푸시 알림 표시
-     * JavaScript: window.Android.showNotification(title, message)
-     */
-    @JavascriptInterface
-    fun showNotification(title: String, message: String) {
-        Log.d(TAG, "알림 표시 요청: $title")
-
-        notificationModule.showNotification(title, message)
-    }
-
-    /**
-     * FCM 토큰 가져오기
-     * JavaScript: window.Android.getFCMToken()
-     */
-    @JavascriptInterface
-    fun getFCMToken(): String {
-        Log.d(TAG, "FCM 토큰 요청")
-
-        var token: String? = null
-        notificationModule.getFCMToken { fcmToken ->
-            token = fcmToken
+            // TODO: 실제 FCM 토큰 조회 구현
+            return "test-fcm-token-" + System.currentTimeMillis()
         }
 
-        return gson.toJson(mapOf(
-            "success" to (token != null),
-            "token" to token,
-            "timestamp" to System.currentTimeMillis()
-        ))
-    }
-
-    // ================================
-    // 시스템 정보 관련 메서드
-    // ================================
-
-    /**
-     * 앱 버전 정보 가져오기
-     * JavaScript: window.Android.getAppVersion()
-     */
-    @JavascriptInterface
-    fun getAppVersion(): String {
-        return try {
-            val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
-            gson.toJson(mapOf(
-                "versionName" to packageInfo.versionName,
-                "versionCode" to packageInfo.versionCode,
-                "packageName" to context.packageName
-            ))
-        } catch (e: Exception) {
-            Log.e(TAG, "앱 버전 정보 조회 오류", e)
-            gson.toJson(mapOf(
-                "success" to false,
-                "error" to e.message
-            ))
-        }
-    }
-
-    /**
-     * 디바이스 정보 가져오기
-     * JavaScript: window.Android.getDeviceInfo()
-     */
-    @JavascriptInterface
-    fun getDeviceInfo(): String {
-        return gson.toJson(mapOf(
-            "manufacturer" to android.os.Build.MANUFACTURER,
-            "model" to android.os.Build.MODEL,
-            "version" to android.os.Build.VERSION.RELEASE,
-            "sdk" to android.os.Build.VERSION.SDK_INT,
-            "timestamp" to System.currentTimeMillis()
-        ))
-    }
-
-    // ================================
-    // 웹뷰 제어 관련 메서드
-    // ================================
-
-    /**
-     * 웹뷰 새로고침
-     * JavaScript: window.Android.refreshWebView()
-     */
-    @JavascriptInterface
-    fun refreshWebView() {
-        Log.d(TAG, "웹뷰 새로고침 요청")
-
-        mainScope.launch {
-            webView?.reload()
-        }
-    }
-
-    /**
-     * 뒤로가기
-     * JavaScript: window.Android.goBack()
-     */
-    @JavascriptInterface
-    fun goBack() {
-        Log.d(TAG, "뒤로가기 요청")
-
-        mainScope.launch {
-            webView?.let { wv ->
-                if (wv.canGoBack()) {
-                    wv.goBack()
-                }
-            }
-        }
-    }
-
-    /**
-     * 특정 URL로 이동
-     * JavaScript: window.Android.navigateToUrl(url)
-     */
-    @JavascriptInterface
-    fun navigateToUrl(url: String) {
-        Log.d(TAG, "URL 이동 요청: $url")
-
-        mainScope.launch {
-            webView?.loadUrl(url)
-        }
-    }
-
-    // ================================
-    // 유틸리티 메서드
-    // ================================
-
-    /**
-     * JavaScript 함수 호출
-     */
-    private fun callJavaScript(functionName: String, data: String) {
-        mainScope.launch {
-            webView?.let { wv ->
-                val script = "if (typeof $functionName === 'function') { $functionName($data); }"
-                wv.evaluateJavascript(script) { result ->
-                    Log.d(TAG, "JavaScript 호출 결과: $result")
-                }
-            } ?: Log.w(TAG, "WebView가 설정되지 않아 JavaScript 호출 실패")
-        }
-    }
-
-    /**
-     * 로그 출력 (JavaScript에서 호출)
-     * JavaScript: window.Android.log(level, message)
-     */
-    @JavascriptInterface
-    fun log(level: String, message: String) {
-        when (level.lowercase()) {
-            "debug", "d" -> Log.d("WebApp", message)
-            "info", "i" -> Log.i("WebApp", message)
-            "warn", "w" -> Log.w("WebApp", message)
-            "error", "e" -> Log.e("WebApp", message)
-            else -> Log.v("WebApp", message)
-        }
-    }
-
-    /**
-     * 리소스 정리
-     */
-    fun cleanup() {
-        Log.d(TAG, "JavaScriptInterface 리소스 정리")
-        webView = null
+    companion object {
+        private const val TAG = "JSInterface"
     }
 }
