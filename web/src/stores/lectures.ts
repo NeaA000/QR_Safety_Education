@@ -116,22 +116,38 @@ export const useLectureStore = defineStore('lectures', () => {
       result = result.filter(lecture => lecture.status === filter.value.status)
     }
 
-    // 정렬
-    if (filter.value.sortBy) {
-      result.sort((a, b) => {
-        const aValue = a[filter.value.sortBy as keyof ExtendedLecture]
-        const bValue = b[filter.value.sortBy as keyof ExtendedLecture]
-        
-        if (filter.value.sortOrder === 'desc') {
-          return bValue > aValue ? 1 : -1
-        } else {
-          return aValue > bValue ? 1 : -1
-        }
-      })
-    }
+   // 정렬
+if (filter.value.sortBy) {
+  result.sort((a, b) => {
+    const key = filter.value.sortBy as keyof ExtendedLecture
+    const aValue = a[key]
+    const bValue = b[key]
 
-    return result
+    // undefined 처리
+    if (aValue === undefined || bValue === undefined) return 0
+
+    // 숫자 비교
+    if (typeof aValue === 'number' && typeof bValue === 'number') {
+      return filter.value.sortOrder === 'desc'
+        ? bValue - aValue
+        : aValue - bValue
+    }
+    // 날짜 비교
+    if (aValue instanceof Date && bValue instanceof Date) {
+      return filter.value.sortOrder === 'desc'
+        ? bValue.getTime() - aValue.getTime()
+        : aValue.getTime() - bValue.getTime()
+    }
+    // 문자열 비교
+    if (typeof aValue === 'string' && typeof bValue === 'string') {
+      return filter.value.sortOrder === 'desc'
+        ? bValue.localeCompare(aValue)
+        : aValue.localeCompare(bValue)
+    }
+    // 기타 타입은 그대로
+    return 0
   })
+}
 
   const lectureStats = computed((): LectureStats => {
     const total = lectures.value.length
