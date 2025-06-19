@@ -1,121 +1,126 @@
 // src/router/index.ts
-import { createRouter, createWebHistory, type RouteRecordRaw, type RouteLocationNormalized } from 'vue-router'
+import { createRouter, createWebHistory } from 'vue-router'
+import type { RouteRecordRaw } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 
-// 라우트 컴포넌트 지연 로딩
-const SplashView = () => import('@/views/SplashView.vue')
-const LoginView = () => import('@/views/LoginView.vue')
-const HomeView = () => import('@/views/HomeView.vue')
-const LectureListView = () => import('@/views/LectureListView.vue')
-const VideoPlayerView = () => import('@/views/VideoPlayerView.vue')
-const CertificateView = () => import('@/views/CertificateView.vue')
-const ProfileView = () => import('@/views/ProfileView.vue')
-const NotFoundView = () => import('@/views/NotFoundView.vue')
-
-// 라우트 정의 - RouteRecordRaw 타입 명시
+// 라우트 정의
 const routes: RouteRecordRaw[] = [
   {
     path: '/',
-    name: 'splash',
-    component: SplashView,
-    meta: {
-      title: '스플래시',
-      requiresAuth: false,
-      hideNavigation: true
-    }
+    name: 'home',
+    component: () => import('@/views/HomeView.vue'),
+    meta: { requiresAuth: true }
   },
   {
     path: '/login',
     name: 'login',
-    component: LoginView,
-    meta: {
-      title: '로그인',
-      requiresAuth: false,
-      hideNavigation: true
-    }
+    component: () => import('@/views/LoginView.vue'),
+    meta: { guest: true }
   },
   {
-    path: '/home',
-    name: 'home',
-    component: HomeView,
-    meta: {
-      title: '홈',
-      requiresAuth: true,
-      hideNavigation: false,
-      icon: 'House'
-    }
+    path: '/register',
+    name: 'register',
+    component: () => import('@/views/RegisterView.vue'),
+    meta: { guest: true }
   },
   {
     path: '/lectures',
     name: 'lectures',
-    component: LectureListView,
-    meta: {
-      title: '강의',
-      requiresAuth: true,
-      hideNavigation: false,
-      icon: 'VideoPlay'
-    }
+    component: () => import('@/views/LectureListView.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/lectures/:id',
+    name: 'lecture-detail',
+    component: () => import('@/views/LectureDetailView.vue'),
+    meta: { requiresAuth: true }
   },
   {
     path: '/lectures/:id/watch',
-    name: 'video-player',
-    component: VideoPlayerView,
-    meta: {
-      title: '강의 시청',
-      requiresAuth: true,
-      hideNavigation: true
-    }
+    name: 'lecture-watch',
+    component: () => import('@/views/LectureWatchView.vue'),
+    meta: { requiresAuth: true }
   },
   {
     path: '/certificates',
     name: 'certificates',
-    component: CertificateView,
-    meta: {
-      title: '수료증',
-      requiresAuth: true,
-      hideNavigation: false,
-      icon: 'Medal'
-    }
+    component: () => import('@/views/CertificateListView.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/certificates/:id',
+    name: 'certificate-detail',
+    component: () => import('@/views/CertificateDetailView.vue'),
+    meta: { requiresAuth: true }
   },
   {
     path: '/profile',
     name: 'profile',
-    component: ProfileView,
-    meta: {
-      title: '프로필',
-      requiresAuth: true,
-      hideNavigation: false,
-      icon: 'User'
-    }
+    component: () => import('@/views/ProfileView.vue'),
+    meta: { requiresAuth: true }
   },
-  // QR 라우트 - redirect 타입 수정
   {
-    path: '/qr/:lectureId',
-    name: 'qr-access',
-    redirect: (to) => {
-      // params를 string으로 변환
-      return {
-        name: 'video-player',
-        params: { 
-          id: String(to.params.lectureId) 
-        }
-      }
-    }
+    path: '/profile/edit',
+    name: 'profile-edit',
+    component: () => import('@/views/ProfileEditView.vue'),
+    meta: { requiresAuth: true }
   },
-  // 404 페이지
+  {
+    path: '/admin',
+    name: 'admin',
+    redirect: '/admin/dashboard',
+    meta: { requiresAuth: true, requiresAdmin: true },
+    children: [
+      {
+        path: 'dashboard',
+        name: 'admin-dashboard',
+        component: () => import('@/views/admin/DashboardView.vue')
+      },
+      {
+        path: 'users',
+        name: 'admin-users',
+        component: () => import('@/views/admin/UsersView.vue')
+      },
+      {
+        path: 'lectures',
+        name: 'admin-lectures',
+        component: () => import('@/views/admin/LecturesView.vue')
+      },
+      {
+        path: 'certificates',
+        name: 'admin-certificates',
+        component: () => import('@/views/admin/CertificatesView.vue')
+      },
+      {
+        path: 'categories',
+        name: 'admin-categories',
+        component: () => import('@/views/admin/CategoriesView.vue')
+      }
+    ]
+  },
+  {
+    path: '/qr-scan',
+    name: 'qr-scan',
+    component: () => import('@/views/QRScanView.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/offline',
+    name: 'offline',
+    component: () => import('@/views/OfflineView.vue')
+  },
+  {
+    path: '/404',
+    name: 'not-found',
+    component: () => import('@/views/NotFoundView.vue')
+  },
   {
     path: '/:pathMatch(.*)*',
-    name: 'not-found',
-    component: NotFoundView,
-    meta: {
-      title: '페이지를 찾을 수 없습니다',
-      requiresAuth: false,
-      hideNavigation: true
-    }
+    redirect: '/404'
   }
 ]
 
-// 라우터 생성
+// 라우터 인스턴스 생성
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes,
@@ -132,52 +137,59 @@ const router = createRouter({
 router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore()
   
-  // 페이지 타이틀 설정
-  const title = to.meta.title as string || 'QR 안전교육'
-  document.title = title
-  
-  // TODO: 보안 - 라우트 접근 권한 검증 강화
-  // TODO: 보안 - CSRF 토큰 검증
-  // TODO: 보안 - 세션 타임아웃 체크
-  
-  // 인증이 필요한 페이지 체크
-  const requiresAuth = to.meta.requiresAuth as boolean
-  
-  if (requiresAuth && !authStore.isAuthenticated) {
-    // 인증되지 않은 경우 로그인 페이지로
-    next({ 
+  // 인증 정보 초기화
+  if (!authStore.user) {
+    authStore.initializeAuth()
+  }
+
+  const isAuthenticated = authStore.isAuthenticated
+  const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
+  const requiresAdmin = to.matched.some(record => record.meta.requiresAdmin)
+  const guestOnly = to.matched.some(record => record.meta.guest)
+
+  // 인증이 필요한 페이지
+  if (requiresAuth && !isAuthenticated) {
+    next({
       name: 'login',
       query: { redirect: to.fullPath }
     })
-  } else if (to.name === 'login' && authStore.isAuthenticated) {
-    // 이미 로그인한 경우 홈으로
-    next({ name: 'home' })
-  } else {
-    next()
+    return
   }
+
+  // 관리자 권한이 필요한 페이지
+  if (requiresAdmin && !authStore.isAdmin) {
+    next({ name: 'home' })
+    return
+  }
+
+  // 게스트만 접근 가능한 페이지 (로그인, 회원가입)
+  if (guestOnly && isAuthenticated) {
+    next({ name: 'home' })
+    return
+  }
+
+  // 토큰 갱신 확인 (만료 시간이 가까운 경우)
+  if (isAuthenticated && authStore.token) {
+    try {
+      // TODO: 토큰 만료 시간 확인 로직
+      // const tokenExpired = checkTokenExpiration(authStore.token)
+      // if (tokenExpired) {
+      //   await authStore.refreshAuthToken()
+      // }
+    } catch (error) {
+      console.error('토큰 갱신 실패:', error)
+    }
+  }
+
+  next()
 })
 
 // 라우터 에러 핸들링
-router.onError((error) => {
+router.onError(error => {
   console.error('라우터 에러:', error)
-  
-  // TODO: 보안 - 에러 로깅 (민감한 정보 제외)
-  
-  // 에러 페이지로 리다이렉트
-  router.push({ 
-    name: 'not-found',
-    params: { pathMatch: ['error'] }
-  })
-})
-
-// 타입 정의
-declare module 'vue-router' {
-  interface RouteMeta {
-    title?: string
-    requiresAuth?: boolean
-    hideNavigation?: boolean
-    icon?: string
+  if (error.message.includes('Failed to fetch dynamically imported module')) {
+    window.location.reload()
   }
-}
+})
 
 export default router
