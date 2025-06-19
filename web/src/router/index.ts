@@ -223,3 +223,19 @@ declare module 'vue-router' {
     icon?: string
   }
 }
+
+interface User {
+  uid: string
+  email: string
+  displayName?: string
+  photoURL?: string
+  emailVerified?: boolean
+  phoneNumber?: string
+  lastLoginAt?: Date
+  role?: string
+}
+
+interface QRCodeData {
+  type: string
+  [key: string]: any
+}
