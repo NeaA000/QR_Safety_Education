@@ -131,37 +131,26 @@ export interface FirebaseConfig {
 // 사용자 인터페이스
 export interface User {
   uid: string
-  email: string | null
-  displayName: string | null
-  photoURL: string | null
-  emailVerified: boolean
-  phoneNumber: string | null
-  
-  // 커스텀 프로퍼티
-  role?: 'user' | 'admin' | 'instructor'
-  department?: string
-  employeeId?: string
+  email: string
+  displayName?: string
+  photoURL?: string
+  emailVerified?: boolean
+  phoneNumber?: string
   lastLoginAt?: Date
-  createdAt?: Date
+  role?: string
 }
 
 // 인증 상태
 export interface AuthState {
-  isAuthenticated: boolean
   user: User | null
   loading: boolean
   error: string | null
-  lastLoginMethod?: 'email' | 'qr' | 'social'
 }
 
 // QR 코드 데이터
 export interface QRCodeData {
-  type: 'login' | 'course' | 'certificate' | 'url'
-  data: any
-  timestamp: number
-  signature?: string
-  userId?: string
-  courseId?: string
+  type: string
+  [key: string]: any
 }
 
 // 강의 정보

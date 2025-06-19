@@ -3,7 +3,6 @@
 
 import { defineStore } from 'pinia'
 import { ref, computed, readonly } from 'vue'
-// import type { User, QRCodeData } from '@/types/global'  // 삭제! (타입은 global.d.ts에서 자동 인식)
 
 interface LoginCredentials {
   email: string

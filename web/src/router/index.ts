@@ -1,5 +1,5 @@
 // src/router/index.ts
-import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
+import { createRouter, createWebHistory, RouteLocationNormalized } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 
 // 라우트 컴포넌트 지연 로딩
@@ -10,15 +10,16 @@ const LectureListView = () => import('@/views/LectureListView.vue')
 const VideoPlayerView = () => import('@/views/VideoPlayerView.vue')
 const CertificateView = () => import('@/views/CertificateView.vue')
 const ProfileView = () => import('@/views/ProfileView.vue')
+const NotFoundView = () => import('@/views/NotFoundView.vue')
 
 // 라우트 정의
-const routes: Array<RouteRecordRaw> = [
+const routes = [
   {
     path: '/',
     name: 'splash',
     component: SplashView,
     meta: {
-      title: 'QR 안전교육',
+      title: '스플래시',
       requiresAuth: false,
       hideNavigation: true
     }
@@ -40,6 +41,7 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       title: '홈',
       requiresAuth: true,
+      hideNavigation: false,
       icon: 'House'
     }
   },
@@ -48,8 +50,9 @@ const routes: Array<RouteRecordRaw> = [
     name: 'lectures',
     component: LectureListView,
     meta: {
-      title: '강의 목록',
+      title: '강의',
       requiresAuth: true,
+      hideNavigation: false,
       icon: 'VideoPlay'
     }
   },
@@ -57,7 +60,6 @@ const routes: Array<RouteRecordRaw> = [
     path: '/lectures/:id/watch',
     name: 'video-player',
     component: VideoPlayerView,
-    props: true,
     meta: {
       title: '강의 시청',
       requiresAuth: true,
@@ -71,6 +73,7 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       title: '수료증',
       requiresAuth: true,
+      hideNavigation: false,
       icon: 'Medal'
     }
   },
@@ -81,26 +84,28 @@ const routes: Array<RouteRecordRaw> = [
     meta: {
       title: '프로필',
       requiresAuth: true,
+      hideNavigation: false,
       icon: 'User'
     }
   },
-  // QR 코드로 접근하는 특별 라우트
+  // QR 라우트는 redirect로!
   {
     path: '/qr/:lectureId',
     name: 'qr-access',
-    beforeEnter: (to) => {
-      // QR 코드 접근 시 강의 페이지로 리다이렉트
-      return { name: 'video-player', params: { id: to.params.lectureId } }
-    }
+    redirect: (to: RouteLocationNormalized) => ({
+      name: 'video-player',
+      params: { id: to.params.lectureId }
+    })
   },
   // 404 페이지
   {
     path: '/:pathMatch(.*)*',
     name: 'not-found',
-    component: () => import('@/views/NotFoundView.vue'),
+    component: NotFoundView,
     meta: {
-      title: '페이지를 찾을 수 없음',
-      requiresAuth: false
+      title: '404',
+      requiresAuth: false,
+      hideNavigation: true
     }
   }
 ]
@@ -108,15 +113,7 @@ const routes: Array<RouteRecordRaw> = [
 // 라우터 생성
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
-  routes,
-  scrollBehavior(to, from, savedPosition) {
-    // 뒤로가기 시 이전 스크롤 위치 복원
-    if (savedPosition) {
-      return savedPosition
-    }
-    // 새 페이지로 이동 시 맨 위로 스크롤
-    return { top: 0 }
-  }
+  routes
 })
 
 // 전역 네비게이션 가드
