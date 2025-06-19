@@ -12,7 +12,7 @@
               :size="32"
             />
             <el-icon class="el-icon--right">
-              <arrow-down />
+              <ArrowDown />
             </el-icon>
           </span>
           <template #dropdown>
@@ -55,8 +55,8 @@
       <!-- QR 스캔 카드 -->
       <el-card class="qr-scan-card">
         <div class="qr-scan-content">
-          <el-icon :size="48">
-            <Search />
+          <el-icon :size="48" color="white">
+            <Camera />
           </el-icon>
           <h3>QR 코드로 강의 시작</h3>
           <p>QR 코드를 스캔하여 바로 강의를 시작하세요</p>
@@ -116,7 +116,7 @@
             <el-card shadow="hover" @click="goToCertificates" class="menu-card">
               <div class="menu-item">
                 <el-icon :size="32" color="#E6A23C">
-                  <Medal />
+                  <Trophy />
                 </el-icon>
                 <span>수료증</span>
               </div>
@@ -168,9 +168,9 @@ import {
   Setting, 
   SwitchButton, 
   CameraFilled,
-  Search,  // QR 스캔 아이콘으로 Search 사용
+  Camera,  // Scan 대신 Camera 사용
   VideoPlay,
-  Medal,
+  Trophy,
   ArrowDown
 } from '@element-plus/icons-vue'
 import { useAuthStore } from '@/stores/auth'
@@ -382,21 +382,27 @@ onMounted(async () => {
   color: white;
 }
 
+.qr-scan-card :deep(.el-card__body) {
+  padding: 0;
+}
+
 .qr-scan-content {
   text-align: center;
-  padding: 20px;
+  padding: 40px 20px;
 }
 
 .qr-scan-content h3 {
   font-size: 20px;
   font-weight: 600;
   margin: 16px 0 8px;
+  color: white;
 }
 
 .qr-scan-content p {
   font-size: 14px;
   margin: 0 0 24px;
   opacity: 0.9;
+  color: white;
 }
 
 .qr-scan-content .el-button {
