@@ -1,52 +1,43 @@
 <template>
   <div class="login-container">
-    <!-- 배경 -->
+    <!-- 배경 패턴 -->
     <div class="background-pattern"></div>
     
-    <!-- 메인 콘텐츠 -->
     <div class="login-content">
-      <!-- 헤더 -->
-      <div class="login-header">
-        <div class="logo-section">
-          <el-icon size="60" color="#1976d2">
-            <Shield />
-          </el-icon>
-          <h1 class="app-title">QR 안전교육</h1>
-          <p class="app-description">QR 코드로 시작하는 스마트한 안전 교육</p>
-        </div>
-      </div>
-      
-      <!-- 로그인 폼 -->
-      <div class="login-form-container">
-        <el-card class="login-card" shadow="always">
-          <template #header>
-            <div class="card-header">
-              <span class="login-title">로그인</span>
+      <!-- 메인 로그인 폼 -->
+      <div class="main-login-section">
+        <el-card class="login-card" shadow="hover">
+          <!-- 헤더 -->
+          <div class="login-header">
+            <div class="logo-section">
+              <el-icon size="48" color="#409EFF">
+                <Shield />
+              </el-icon>
+              <h1 class="app-title">QR 안전교육</h1>
+              <p class="app-description">스마트한 안전교육 관리 시스템</p>
             </div>
-          </template>
+          </div>
           
+          <!-- 로그인 폼 -->
           <el-form
             ref="loginFormRef"
             :model="loginForm"
             :rules="loginRules"
-            label-position="top"
-            size="large"
             @submit.prevent="handleLogin"
+            size="large"
+            label-width="0"
           >
-            <!-- 이메일 입력 -->
-            <el-form-item label="이메일" prop="email">
+            <el-form-item prop="email">
               <el-input
                 v-model="loginForm.email"
                 type="email"
                 placeholder="이메일을 입력하세요"
                 :prefix-icon="Message"
                 clearable
-                @keyup.enter="handleLogin"
               />
             </el-form-item>
             
-            <!-- 비밀번호 입력 -->
-            <el-form-item label="비밀번호" prop="password">
+            <el-form-item prop="password">
               <el-input
                 v-model="loginForm.password"
                 type="password"
@@ -58,13 +49,10 @@
               />
             </el-form-item>
             
-            <!-- 로그인 옵션 -->
-            <div class="login-options">
-              <el-checkbox v-model="loginForm.rememberMe">
-                로그인 상태 유지
-              </el-checkbox>
+            <!-- 비밀번호 찾기 링크 -->
+            <div class="forgot-password">
               <el-link type="primary" @click="showForgotPassword">
-                비밀번호 찾기
+                비밀번호를 잊으셨나요?
               </el-link>
             </div>
             
@@ -126,7 +114,7 @@
         <el-card class="qr-card" shadow="hover">
           <div class="qr-content">
             <el-icon size="32" color="#1976d2">
-              <Qrcode />
+              <Scan />
             </el-icon>
             <div class="qr-text">
               <h3>QR 코드로 빠른 로그인</h3>
@@ -183,7 +171,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Shield, Message, Lock, Qrcode, Scan } from '@element-plus/icons-vue'
+import { Shield, Message, Lock, Scan } from '@element-plus/icons-vue'
 import { useAuthStore } from '@/stores/auth'
 import nativeBridge from '@/services/native-bridge'
 import { logAnalyticsEvent } from '@/services/firebase'
@@ -194,18 +182,17 @@ export default {
     Shield,
     Message,
     Lock,
-    Qrcode,
     Scan
   },
   setup() {
     const router = useRouter()
     const authStore = useAuthStore()
     
-    // 참조
+    // 폼 참조
     const loginFormRef = ref()
     const forgotFormRef = ref()
     
-    // 로딩 상태
+    // 상태
     const isLoading = ref(false)
     const isQRLoading = ref(false)
     const isForgotLoading = ref(false)
@@ -213,17 +200,15 @@ export default {
       google: false,
       naver: false
     })
-    
-    // 다이얼로그 상태
     const showForgotDialog = ref(false)
     
-    // 폼 데이터
+    // 로그인 폼 데이터
     const loginForm = reactive({
       email: '',
-      password: '',
-      rememberMe: false
+      password: ''
     })
     
+    // 비밀번호 찾기 폼 데이터
     const forgotForm = reactive({
       email: ''
     })
@@ -231,19 +216,19 @@ export default {
     // 유효성 검사 규칙
     const loginRules = {
       email: [
-        { required: true, message: '이메일을 입력해 주세요', trigger: 'blur' },
-        { type: 'email', message: '올바른 이메일 형식이 아닙니다', trigger: 'blur' }
+        { required: true, message: '이메일을 입력해주세요', trigger: 'blur' },
+        { type: 'email', message: '올바른 이메일 형식을 입력해주세요', trigger: 'blur' }
       ],
       password: [
-        { required: true, message: '비밀번호를 입력해 주세요', trigger: 'blur' },
+        { required: true, message: '비밀번호를 입력해주세요', trigger: 'blur' },
         { min: 6, message: '비밀번호는 최소 6자 이상이어야 합니다', trigger: 'blur' }
       ]
     }
     
     const forgotRules = {
       email: [
-        { required: true, message: '이메일을 입력해 주세요', trigger: 'blur' },
-        { type: 'email', message: '올바른 이메일 형식이 아닙니다', trigger: 'blur' }
+        { required: true, message: '이메일을 입력해주세요', trigger: 'blur' },
+        { type: 'email', message: '올바른 이메일 형식을 입력해주세요', trigger: 'blur' }
       ]
     }
     
@@ -253,18 +238,16 @@ export default {
     })
     
     /**
-     * 일반 로그인 처리
+     * 이메일 로그인
      */
     const handleLogin = async () => {
       try {
-        // 폼 유효성 검사
         const valid = await loginFormRef.value.validate()
         if (!valid) return
         
         isLoading.value = true
         
-        // 로그인 시도
-        await authStore.signInWithEmail(loginForm.email, loginForm.password, loginForm.rememberMe)
+        await authStore.signInWithEmail(loginForm.email, loginForm.password)
         
         ElMessage.success('로그인되었습니다.')
         
@@ -274,7 +257,6 @@ export default {
           success: true
         })
         
-        // 홈으로 이동
         router.replace('/home')
         
       } catch (error) {
@@ -285,13 +267,13 @@ export default {
         if (error.code === 'auth/user-not-found') {
           errorMessage = '존재하지 않는 계정입니다.'
         } else if (error.code === 'auth/wrong-password') {
-          errorMessage = '비밀번호가 올바르지 않습니다.'
+          errorMessage = '잘못된 비밀번호입니다.'
         } else if (error.code === 'auth/invalid-email') {
           errorMessage = '이메일 형식이 올바르지 않습니다.'
         } else if (error.code === 'auth/user-disabled') {
           errorMessage = '비활성화된 계정입니다.'
         } else if (error.code === 'auth/too-many-requests') {
-          errorMessage = '로그인 시도가 너무 많습니다. 잠시 후 다시 시도해 주세요.'
+          errorMessage = '너무 많은 로그인 시도가 있었습니다. 잠시 후 다시 시도해주세요.'
         }
         
         ElMessage.error(errorMessage)
@@ -353,7 +335,6 @@ export default {
       try {
         isSocialLoading.naver = true
         
-        // 네이버 로그인은 서버 측 구현 필요
         ElMessage.info('네이버 로그인 기능은 준비 중입니다.')
         
       } catch (error) {
@@ -373,10 +354,9 @@ export default {
         isQRLoading.value = true
         
         // 카메라 권한 확인
-        const hasPermission = await nativeBridge.checkCameraPermission()
-        if (!hasPermission) {
-          const granted = await nativeBridge.requestCameraPermission()
-          if (!granted) {
+        if (nativeBridge.isNativeApp()) {
+          const hasPermission = await nativeBridge.requestCameraPermission()
+          if (!hasPermission) {
             ElMessage.warning('카메라 권한이 필요합니다.')
             return
           }
@@ -560,77 +540,76 @@ export default {
   background-image: 
     radial-gradient(circle at 20% 80%, rgba(25, 118, 210, 0.1) 0%, transparent 50%),
     radial-gradient(circle at 80% 20%, rgba(25, 118, 210, 0.1) 0%, transparent 50%);
-  z-index: -1;
+  pointer-events: none;
 }
 
 .login-content {
-  width: 100%;
-  max-width: 420px;
   display: flex;
-  flex-direction: column;
-  gap: 24px;
+  gap: 30px;
+  align-items: flex-start;
+  width: 100%;
+  max-width: 900px;
+  z-index: 1;
 }
 
-/* 헤더 */
+.main-login-section {
+  flex: 1;
+  max-width: 400px;
+}
+
+.qr-login-section {
+  flex: 0 0 280px;
+}
+
+.login-card,
+.qr-card {
+  border-radius: 16px;
+  border: none;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.95);
+}
+
 .login-header {
   text-align: center;
-  margin-bottom: 20px;
+  margin-bottom: 30px;
 }
 
 .logo-section {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
 .app-title {
   font-size: 28px;
   font-weight: 700;
-  color: #1976d2;
+  color: #303133;
   margin: 0;
+  letter-spacing: -0.5px;
 }
 
 .app-description {
   font-size: 14px;
-  color: #666;
+  color: #606266;
   margin: 0;
 }
 
-/* 로그인 카드 */
-.login-card {
-  border-radius: 16px;
-  overflow: hidden;
-}
-
-.card-header {
-  text-align: center;
-}
-
-.login-title {
-  font-size: 20px;
-  font-weight: 600;
-  color: #333;
-}
-
-/* 로그인 옵션 */
-.login-options {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-}
-
-/* 로그인 버튼 */
 .login-button {
   width: 100%;
   height: 48px;
   font-size: 16px;
   font-weight: 600;
-  margin-bottom: 24px;
+  border-radius: 8px;
+  margin-top: 10px;
 }
 
-/* 소셜 로그인 */
+.forgot-password {
+  text-align: right;
+  margin-bottom: 20px;
+}
+
 .social-login-section {
   display: flex;
   flex-direction: column;
@@ -640,134 +619,152 @@ export default {
 .social-button {
   width: 100%;
   height: 48px;
-  font-size: 14px;
-  font-weight: 500;
+  border-radius: 8px;
+  font-weight: 600;
+  border: 1px solid #dcdfe6;
 }
 
 .google-button {
   background: #fff;
-  border: 1px solid #ddd;
-  color: #333;
+  color: #303133;
 }
 
 .google-button:hover {
-  background: #f9f9f9;
+  background: #f5f5f5;
 }
 
 .naver-button {
   background: #03c75a;
-  border: 1px solid #03c75a;
   color: white;
+  border-color: #03c75a;
 }
 
 .naver-button:hover {
-  background: #02b351;
+  background: #02b151;
+  border-color: #02b151;
 }
 
 .social-icon {
   width: 20px;
   height: 20px;
+  margin-right: 8px;
 }
 
-/* 회원가입 섹션 */
 .register-section {
   text-align: center;
-  margin-top: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #ebeef5;
 }
 
 .register-text {
-  font-size: 14px;
-  color: #666;
-}
-
-/* QR 로그인 */
-.qr-card {
-  border-radius: 12px;
+  color: #606266;
+  margin-right: 8px;
 }
 
 .qr-content {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 8px;
+  text-align: center;
+  padding: 20px;
 }
 
 .qr-text {
-  flex: 1;
+  margin: 20px 0;
 }
 
 .qr-text h3 {
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 600;
-  margin: 0 0 4px 0;
-  color: #333;
+  color: #303133;
+  margin: 0 0 8px 0;
 }
 
 .qr-text p {
-  font-size: 12px;
-  color: #666;
+  font-size: 14px;
+  color: #606266;
   margin: 0;
+  line-height: 1.4;
 }
 
 .qr-button {
-  flex-shrink: 0;
+  width: 100%;
+  height: 48px;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 8px;
 }
 
-/* 다이얼로그 */
 .dialog-footer {
-  text-align: right;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
 }
 
-/* 모바일 최적화 */
-@media (max-width: 480px) {
-  .login-container {
-    padding: 16px;
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+  .login-content {
+    flex-direction: column;
+    align-items: center;
   }
   
-  .login-content {
-    max-width: 100%;
+  .qr-login-section {
+    flex: none;
+    width: 100%;
+    max-width: 400px;
   }
   
   .app-title {
     font-size: 24px;
   }
-  
-  .qr-content {
-    flex-direction: column;
-    text-align: center;
-    gap: 12px;
-  }
-  
-  .qr-text {
-    text-align: center;
-  }
 }
 
-/* 다크모드 지원 */
-@media (prefers-color-scheme: dark) {
+@media (max-width: 480px) {
   .login-container {
-    background: linear-gradient(135deg, #1a1a1a 0%, #2d3748 100%);
+    padding: 15px;
   }
   
   .app-title {
-    color: #64b5f6;
+    font-size: 22px;
   }
   
-  .app-description {
-    color: #a0a0a0;
+  .qr-text h3 {
+    font-size: 16px;
   }
 }
 
-/* 접근성 */
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+/* 다크 모드 지원 */
+@media (prefers-color-scheme: dark) {
+  .login-container {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+  }
+  
+  .login-card,
+  .qr-card {
+    background: rgba(30, 30, 30, 0.95);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .app-title {
+    color: #ffffff;
+  }
+  
+  .app-description,
+  .register-text,
+  .qr-text p {
+    color: #b0b0b0;
+  }
+  
+  .qr-text h3 {
+    color: #ffffff;
+  }
+  
+  .google-button {
+    background: #2d2d2d;
+    color: #ffffff;
+    border-color: #404040;
+  }
+  
+  .google-button:hover {
+    background: #404040;
   }
 }
 </style>
