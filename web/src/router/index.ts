@@ -1,6 +1,25 @@
-// src/router/index.ts
-import { createRouter, createWebHistory, RouteLocationNormalized } from 'vue-router'
+// src/router/index.ts - TypeScript 오류 수정 버전
+import { createRouter, createWebHistory, type RouteLocationNormalized } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+
+// 인터페이스 정의
+interface User {
+  uid: string
+  email: string
+  displayName?: string
+  photoURL?: string
+  emailVerified?: boolean
+  phoneNumber?: string
+  lastLoginAt?: Date
+  role?: string
+}
+
+interface QRCodeData {
+  type: string
+  lectureId?: string
+  userId?: string
+  [key: string]: any
+}
 
 // 라우트 컴포넌트 지연 로딩
 const SplashView = () => import('@/views/SplashView.vue')
@@ -88,13 +107,13 @@ const routes = [
       icon: 'User'
     }
   },
-  // QR 라우트는 redirect로!
+  // QR 라우트 - 타입 오류 수정
   {
     path: '/qr/:lectureId',
     name: 'qr-access',
     redirect: (to: RouteLocationNormalized) => ({
       name: 'video-player',
-      params: { id: to.params.lectureId }
+      params: { id: String(to.params.lectureId) }
     })
   },
   // 404 페이지
@@ -108,7 +127,7 @@ const routes = [
       hideNavigation: true
     }
   }
-]
+] as const
 
 // 라우터 생성
 const router = createRouter({
@@ -163,13 +182,12 @@ router.beforeEach(async (to, from, next) => {
 router.afterEach((to, from) => {
   // 페이지 변경 분석 (Firebase Analytics)
   if (import.meta.env.PROD) {
-    // TODO: Firebase Analytics 페이지뷰 추적
-    console.log(`페이지 뷰: ${String(to.name)}`) // ← 수정
+    console.log(`페이지 뷰: ${String(to.name)}`)
   }
   
   // 네이티브 앱에 페이지 변경 알림
   if (window.isNativeApp && window.Android) {
-    window.Android.showToast(`페이지 이동: ${to.meta.title || String(to.name)}`) // ← 수정
+    window.Android.showToast(`페이지 이동: ${to.meta.title || String(to.name)}`)
   }
 })
 
@@ -224,18 +242,5 @@ declare module 'vue-router' {
   }
 }
 
-interface User {
-  uid: string
-  email: string
-  displayName?: string
-  photoURL?: string
-  emailVerified?: boolean
-  phoneNumber?: string
-  lastLoginAt?: Date
-  role?: string
-}
-
-interface QRCodeData {
-  type: string
-  [key: string]: any
-}
+// 타입 내보내기
+export type { User, QRCodeData }
