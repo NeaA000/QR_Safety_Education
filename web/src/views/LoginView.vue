@@ -1,4 +1,3 @@
-<!-- filepath: web/src/views/LoginView.vue -->
 <template>
   <div class="login-container">
     <el-card class="login-card">
@@ -48,10 +47,10 @@
           <el-button
             type="default"
             style="width: 100%"
+            :loading="isGoogleLoading"
             @click="handleGoogleLogin"
-            disabled
           >
-            Google로 로그인 (준비중)
+            Google로 로그인
           </el-button>
         </el-form-item>
         <el-form-item>
@@ -76,6 +75,7 @@ const authStore = useAuthStore()
 
 const loginFormRef = ref()
 const isLoading = ref(false)
+const isGoogleLoading = ref(false)
 
 const loginForm = reactive({
   email: '',
@@ -114,8 +114,19 @@ const handleLogin = async () => {
   })
 }
 
-const handleGoogleLogin = () => {
-  ElMessage.info('Google 로그인 기능은 준비 중입니다.')
+const handleGoogleLogin = async () => {
+  isGoogleLoading.value = true
+  try {
+    const success = await authStore.signInWithGoogle()
+    if (success) {
+      ElMessage.success('Google 로그인되었습니다.')
+      router.replace('/home')
+    } else {
+      ElMessage.error(authStore.error || 'Google 로그인에 실패했습니다.')
+    }
+  } finally {
+    isGoogleLoading.value = false
+  }
 }
 
 const handleForgotPassword = () => {
