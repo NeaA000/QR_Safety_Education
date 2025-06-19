@@ -25,7 +25,7 @@ export default {
     const isReady = ref(false)
     const authStore = useAuthStore()
 
-    onMounted(async () => {
+    const initializeApp = async () => {
       try {
         // 1. Firebase 초기화 먼저 수행
         console.log('Firebase 초기화 시작...')
@@ -38,9 +38,16 @@ export default {
           // - 네트워크 복구 시 동기화
         }
 
-        // 2. Auth 상태 초기화
-        console.log('인증 상태 확인 중...')
-        await authStore.initializeAuth()
+        // 2. Auth 상태 초기화 (Firebase가 초기화된 후)
+        if (firebaseInitialized) {
+          console.log('인증 상태 확인 중...')
+          try {
+            await authStore.initializeAuth()
+          } catch (authError) {
+            console.warn('인증 초기화 실패:', authError)
+            // 인증 실패해도 앱은 계속 진행 (로그인 화면으로)
+          }
+        }
         
         // TODO: [보안강화] 앱 무결성 검증
         // - 앱 서명 검증
@@ -56,6 +63,10 @@ export default {
         // - 오류 보고 (민감한 정보 제외)
         isReady.value = true // 에러 화면 표시를 위해
       }
+    }
+
+    onMounted(() => {
+      initializeApp()
     })
 
     return {

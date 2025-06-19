@@ -1,9 +1,9 @@
-// src/services/firebase.ts - 보안 강화가 필요한 버전
-import { initializeApp, FirebaseApp } from 'firebase/app'
-import { getAuth, Auth } from 'firebase/auth'
-import { getFirestore, Firestore } from 'firebase/firestore'
-import { getStorage, FirebaseStorage } from 'firebase/storage'
-import { getAnalytics, Analytics } from 'firebase/analytics'
+// src/services/firebase.ts - 보안 강화가 필요한 버전 (수정됨)
+import type { FirebaseApp } from 'firebase/app'
+import type { Auth } from 'firebase/auth'
+import type { Firestore } from 'firebase/firestore'
+import type { FirebaseStorage } from 'firebase/storage'
+import type { Analytics } from 'firebase/analytics'
 
 // TODO: [보안강화-P1] API 키 노출 방지
 // - 환경변수를 암호화하여 저장
@@ -58,7 +58,14 @@ async function doInitialize(): Promise<boolean> {
     if (import.meta.env.PROD && !window.location.protocol.includes('https')) {
       console.error('❌ HTTPS가 필요합니다!')
       // TODO: HTTP에서 HTTPS로 강제 리다이렉트
+      window.location.protocol = 'https:'
     }
+    
+    // Firebase 모듈 동적 임포트
+    const { initializeApp } = await import('firebase/app')
+    const { getAuth } = await import('firebase/auth')
+    const { getFirestore } = await import('firebase/firestore')
+    const { getStorage } = await import('firebase/storage')
     
     // Firebase 앱 초기화
     app = initializeApp(firebaseConfig)
@@ -84,6 +91,7 @@ async function doInitialize(): Promise<boolean> {
     // Analytics (프로덕션 환경에서만)
     if (import.meta.env.PROD && typeof window !== 'undefined') {
       try {
+        const { getAnalytics } = await import('firebase/analytics')
         analytics = getAnalytics(app)
         
         // TODO: [보안강화-P5] 개인정보 보호
@@ -109,6 +117,11 @@ async function doInitialize(): Promise<boolean> {
     // - 사용자에게는 일반적인 메시지만 표시
     // - 상세 오류는 로깅 시스템으로만 전송
     
+    // 개발 환경에서만 상세 오류 표시
+    if (import.meta.env.DEV) {
+      console.error('상세 오류:', error)
+    }
+    
     return false
   }
 }
@@ -118,24 +131,30 @@ async function doInitialize(): Promise<boolean> {
  */
 export async function getFirebaseAuth(): Promise<Auth> {
   if (!auth) {
-    await initializeFirebase()
-    if (!auth) throw new Error('Firebase Auth 초기화 실패')
+    const initialized = await initializeFirebase()
+    if (!initialized || !auth) {
+      throw new Error('Firebase Auth 초기화 실패')
+    }
   }
   return auth
 }
 
 export async function getFirebaseDb(): Promise<Firestore> {
   if (!db) {
-    await initializeFirebase()
-    if (!db) throw new Error('Firestore 초기화 실패')
+    const initialized = await initializeFirebase()
+    if (!initialized || !db) {
+      throw new Error('Firestore 초기화 실패')
+    }
   }
   return db
 }
 
 export async function getFirebaseStorage(): Promise<FirebaseStorage> {
   if (!storage) {
-    await initializeFirebase()
-    if (!storage) throw new Error('Firebase Storage 초기화 실패')
+    const initialized = await initializeFirebase()
+    if (!initialized || !storage) {
+      throw new Error('Firebase Storage 초기화 실패')
+    }
   }
   return storage
 }
@@ -173,18 +192,31 @@ function sanitizeParameters(params: Record<string, any>): Record<string, any> {
   // - 전화번호 패턴 감지 및 마스킹
   // - 신용카드 번호 패턴 감지 및 제거
   
-  // 임시 구현
-  const sensitiveKeys = ['email', 'password', 'phone', 'ssn', 'creditCard']
+  // 민감한 키워드 제거
+  const sensitiveKeys = ['email', 'password', 'phone', 'ssn', 'creditCard', 'name', 'address']
   sensitiveKeys.forEach(key => {
     if (key in sanitized) {
       delete sanitized[key]
     }
   })
   
+  // 재귀적으로 중첩된 객체도 검사
+  Object.keys(sanitized).forEach(key => {
+    if (typeof sanitized[key] === 'object' && sanitized[key] !== null) {
+      sanitized[key] = sanitizeParameters(sanitized[key])
+    }
+  })
+  
   return sanitized
 }
 
+// 개발 환경 헬퍼 함수
+export function isFirebaseInitialized(): boolean {
+  return isInitialized
+}
+
 // 동기적 접근을 위한 getter (초기화 후에만 사용)
+// 주의: 이 변수들은 초기화 전에는 null입니다
 export { app, auth, db, storage, analytics }
 
 // 기본 내보내기
@@ -193,5 +225,6 @@ export default {
   getFirebaseAuth,
   getFirebaseDb,
   getFirebaseStorage,
-  logAnalyticsEvent
+  logAnalyticsEvent,
+  isFirebaseInitialized
 }
