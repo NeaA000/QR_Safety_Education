@@ -170,7 +170,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Shield, Message, Lock, Scan } from '@element-plus/icons-vue'
+import { Shield, Message, Lock } from '@element-plus/icons-vue'
 import { useAuthStore } from '@/stores/auth'
 import nativeBridge from '@/services/native-bridge'
 import { logAnalyticsEvent } from '@/services/firebase'
@@ -180,8 +180,7 @@ export default {
   components: {
     Shield,
     Message,
-    Lock,
-    Scan
+    Lock
   },
   setup() {
     const router = useRouter()
