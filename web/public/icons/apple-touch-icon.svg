@@ -1,0 +1,5 @@
+<!-- public/icons/apple-touch-icon.png 대신 SVG -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="180" height="180">
+  <rect width="512" height="512" fill="#1976D2"/>
+  <path fill="white" d="M256 48C141.31 48 48 141.31 48 256s93.31 208 208 208 208-93.31 208-208S370.69 48 256 48zm-50 346.92V283H96v-22h110v-61H96v-22h115.64L272 239.82V178h22v85.44l40-40.42v22l-40 40.42V341h-22v-46.23l-61.36-62.32V283h110v22H206v111.92z"/>
+</svg>

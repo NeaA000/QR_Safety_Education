@@ -1,0 +1,119 @@
+{
+  "name": "QR 안전교육",
+  "short_name": "QR안전교육",
+  "description": "QR 코드 기반 안전교육 시스템",
+  "version": "1.0.0",
+  "manifest_version": 3,
+  
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#1976D2",
+  "background_color": "#ffffff",
+  
+  "icons": [
+    {
+      "src": "/icons/icon-72x72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-128x128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-144x144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-152x152.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-384x384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    }
+  ],
+  
+  "categories": ["education", "productivity", "safety"],
+  "lang": "ko",
+  "dir": "ltr",
+  
+  "prefer_related_applications": true,
+  "related_applications": [
+    {
+      "platform": "play",
+      "url": "https://play.google.com/store/apps/details?id=com.qrsafety.education",
+      "id": "com.qrsafety.education"
+    }
+  ],
+  
+  "screenshots": [
+    {
+      "src": "/screenshots/screenshot1.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "platform": "wide"
+    },
+    {
+      "src": "/screenshots/screenshot2.png",
+      "sizes": "750x1334",
+      "type": "image/png",
+      "platform": "narrow"
+    }
+  ],
+  
+  "shortcuts": [
+    {
+      "name": "QR 스캔",
+      "short_name": "QR스캔",
+      "description": "QR 코드 스캔하기",
+      "url": "/scan",
+      "icons": [
+        {
+          "src": "/icons/qr-icon.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "내 수료증",
+      "short_name": "수료증",
+      "description": "수료증 확인하기",
+      "url": "/certificates",
+      "icons": [
+        {
+          "src": "/icons/certificate-icon.png",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ]
+}
