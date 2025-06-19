@@ -1,17 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type { Lecture, Certificate } from '@/types/global'
-
-// 강의 카테고리 타입
-export type LectureCategory = 
-  | 'fire'         // 화재 안전
-  | 'firstaid'     // 응급처치
-  | 'electric'     // 전기 안전
-  | 'chemical'     // 화학 안전
-  | 'height'       // 고소 작업
-  | 'machinery'    // 기계 안전
-  | 'construction' // 건설 안전
-  | 'general'      // 일반 안전
+import type { MainCategory, MiddleCategory, LeafCategory } from '@/types/category'
 
 // 강의 레벨 타입
 export type LectureLevel = '초급' | '중급' | '고급'
@@ -36,6 +26,10 @@ interface ExtendedLecture extends Lecture {
     language: string
     url: string
   }[]
+  // 카테고리는 LeafCategory 사용 (가장 구체적인 카테고리)
+  leafCategory?: LeafCategory
+  middleCategory?: MiddleCategory  
+  mainCategory?: MainCategory
 }
 
 // 강의 진도 정보
@@ -53,7 +47,10 @@ interface LectureProgress {
 
 // 강의 검색 필터
 interface LectureFilter {
-  category?: LectureCategory
+  // 카테고리 필터링 - 3단계 구조 지원
+  mainCategory?: MainCategory
+  middleCategory?: MiddleCategory
+  leafCategory?: LeafCategory
   level?: LectureLevel
   status?: LectureStatus
   searchQuery?: string
@@ -101,9 +98,13 @@ export const useLectureStore = defineStore('lectures', () => {
       )
     }
 
-    // 카테고리 필터링
-    if (filter.value.category) {
-      result = result.filter(lecture => lecture.category === filter.value.category)
+    // 카테고리 필터링 - 3단계 구조 지원
+    if (filter.value.leafCategory) {
+      result = result.filter(lecture => lecture.leafCategory === filter.value.leafCategory)
+    } else if (filter.value.middleCategory) {
+      result = result.filter(lecture => lecture.middleCategory === filter.value.middleCategory)
+    } else if (filter.value.mainCategory && filter.value.mainCategory !== '전체') {
+      result = result.filter(lecture => lecture.mainCategory === filter.value.mainCategory)
     }
 
     // 레벨 필터링
@@ -148,6 +149,9 @@ if (filter.value.sortBy) {
     return 0
   })
 }
+
+    return result
+  })
 
   const lectureStats = computed((): LectureStats => {
     const total = lectures.value.length
@@ -199,7 +203,7 @@ if (filter.value.sortBy) {
       // const response = await api.get('/lectures')
       // lectures.value = response.data
 
-      // 임시 데이터
+      // 임시 데이터 - 새로운 카테고리 구조 적용
       lectures.value = [
         {
           id: '1',
@@ -208,7 +212,10 @@ if (filter.value.sortBy) {
           duration: 1800, // 30분
           videoUrl: 'https://example.com/videos/fire-safety-basic.mp4',
           thumbnailUrl: '/images/lectures/fire-safety-basic.jpg',
-          category: 'fire',
+          category: 'fire', // 기존 호환성 유지
+          mainCategory: '장비',
+          middleCategory: '안전장비',
+          leafCategory: '헬멧',
           instructor: '김안전',
           progress: 75,
           level: '초급',
@@ -232,7 +239,10 @@ if (filter.value.sortBy) {
           duration: 2400, // 40분
           videoUrl: 'https://example.com/videos/first-aid.mp4',
           thumbnailUrl: '/images/lectures/first-aid.jpg',
-          category: 'firstaid',
+          category: 'firstaid', // 기존 호환성 유지
+          mainCategory: '약품',
+          middleCategory: '의약품',
+          leafCategory: '인슐린',
           instructor: '박의료',
           progress: 100,
           level: '중급',
@@ -254,7 +264,10 @@ if (filter.value.sortBy) {
           duration: 2100, // 35분
           videoUrl: 'https://example.com/videos/electric-safety.mp4',
           thumbnailUrl: '/images/lectures/electric-safety.jpg',
-          category: 'electric',
+          category: 'electric', // 기존 호환성 유지
+          mainCategory: '기계',
+          middleCategory: '산업기계',
+          leafCategory: '굴착기',
           instructor: '이전기',
           progress: 0,
           level: '고급',
