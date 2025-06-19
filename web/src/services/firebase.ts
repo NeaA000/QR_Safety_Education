@@ -1,16 +1,15 @@
-// src/services/firebase.ts - 안전한 TypeScript 버전
-interface FirebaseConfig {
-  apiKey: string;
-  authDomain: string;
-  projectId: string;
-  storageBucket: string;
-  messagingSenderId: string;
-  appId: string;
-  measurementId?: string;
-}
+// src/services/firebase.ts - 보안 강화가 필요한 버전
+import { initializeApp, FirebaseApp } from 'firebase/app'
+import { getAuth, Auth } from 'firebase/auth'
+import { getFirestore, Firestore } from 'firebase/firestore'
+import { getStorage, FirebaseStorage } from 'firebase/storage'
+import { getAnalytics, Analytics } from 'firebase/analytics'
 
-// Firebase 설정 (환경변수 또는 기본값)
-const firebaseConfig: FirebaseConfig = {
+// TODO: [보안강화-P1] API 키 노출 방지
+// - 환경변수를 암호화하여 저장
+// - ProGuard/R8으로 난독화
+// - Firebase App Check 구현으로 앱 무결성 검증
+const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "demo-api-key",
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "qr-safety-demo.firebaseapp.com",
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "qr-safety-demo",
@@ -20,91 +19,179 @@ const firebaseConfig: FirebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID || "G-DEMO"
 }
 
-// Firebase 모듈들 (동적 임포트로 안전하게 로드)
-let app: any = null
-let auth: any = null
-let db: any = null
-let storage: any = null
-let analytics: any = null
+// Firebase 인스턴스
+let app: FirebaseApp | null = null
+let auth: Auth | null = null
+let db: Firestore | null = null
+let storage: FirebaseStorage | null = null
+let analytics: Analytics | null = null
+
+// 초기화 상태
+let isInitialized = false
+let initializationPromise: Promise<boolean> | null = null
 
 /**
- * Firebase 초기화 (안전한 버전)
+ * Firebase 초기화 (싱글톤 패턴)
  */
 export async function initializeFirebase(): Promise<boolean> {
+  // 이미 초기화 중이면 기존 Promise 반환
+  if (initializationPromise) {
+    return initializationPromise
+  }
+
+  // 이미 초기화되었으면 true 반환
+  if (isInitialized) {
+    return true
+  }
+
+  initializationPromise = doInitialize()
+  return initializationPromise
+}
+
+async function doInitialize(): Promise<boolean> {
   try {
     console.log('🔥 Firebase 초기화 시작...')
     
-    // Firebase 모듈들을 동적으로 임포트
-    const { initializeApp } = await import('firebase/app')
-    const { getAuth } = await import('firebase/auth')
-    const { getFirestore } = await import('firebase/firestore')
-    const { getStorage } = await import('firebase/storage')
+    // TODO: [보안강화-P2] API 호출 전 네트워크 보안 검증
+    // - HTTPS 강제 확인
+    // - 인증서 피닝 구현 (프로덕션 환경)
+    if (import.meta.env.PROD && !window.location.protocol.includes('https')) {
+      console.error('❌ HTTPS가 필요합니다!')
+      // TODO: HTTP에서 HTTPS로 강제 리다이렉트
+    }
     
     // Firebase 앱 초기화
     app = initializeApp(firebaseConfig)
     console.log('✅ Firebase 앱 초기화 완료')
     
-    // 서비스들 초기화
+    // 서비스 초기화
     auth = getAuth(app)
     db = getFirestore(app)
     storage = getStorage(app)
     
+    // TODO: [보안강화-P3] Firestore 보안 규칙 강화
+    // - 읽기/쓰기 권한을 인증된 사용자로 제한
+    // - 사용자별 데이터 접근 제한
+    // - 민감한 필드 접근 제한
+    
+    // TODO: [보안강화-P4] Storage 보안 규칙 강화
+    // - 파일 업로드 크기 제한 (최대 10MB)
+    // - 허용된 파일 형식만 업로드 (이미지, PDF)
+    // - 사용자별 저장 공간 할당량 설정
+    
     console.log('✅ Firebase 서비스들 초기화 완료')
     
-    // Analytics는 프로덕션에서만
+    // Analytics (프로덕션 환경에서만)
     if (import.meta.env.PROD && typeof window !== 'undefined') {
       try {
-        const { getAnalytics } = await import('firebase/analytics')
         analytics = getAnalytics(app)
+        
+        // TODO: [보안강화-P5] 개인정보 보호
+        // - IP 주소 익명화 설정
+        // - 민감한 정보 수집 방지
+        // - GDPR/CCPA 준수를 위한 동의 관리
+        
         console.log('✅ Firebase Analytics 초기화 완료')
       } catch (error) {
         console.warn('⚠️ Analytics 초기화 실패:', error)
       }
     }
     
+    isInitialized = true
     console.log('🎉 Firebase 전체 초기화 완료!')
     return true
     
   } catch (error) {
     console.error('❌ Firebase 초기화 실패:', error)
-    console.warn('⚠️ Firebase 없이 계속 진행합니다.')
+    
+    // TODO: [보안강화-P6] 오류 처리 강화
+    // - 민감한 오류 정보 노출 방지
+    // - 사용자에게는 일반적인 메시지만 표시
+    // - 상세 오류는 로깅 시스템으로만 전송
+    
     return false
   }
 }
 
 /**
- * Analytics 이벤트 로깅
+ * Firebase 서비스 getter (초기화 보장)
+ */
+export async function getFirebaseAuth(): Promise<Auth> {
+  if (!auth) {
+    await initializeFirebase()
+    if (!auth) throw new Error('Firebase Auth 초기화 실패')
+  }
+  return auth
+}
+
+export async function getFirebaseDb(): Promise<Firestore> {
+  if (!db) {
+    await initializeFirebase()
+    if (!db) throw new Error('Firestore 초기화 실패')
+  }
+  return db
+}
+
+export async function getFirebaseStorage(): Promise<FirebaseStorage> {
+  if (!storage) {
+    await initializeFirebase()
+    if (!storage) throw new Error('Firebase Storage 초기화 실패')
+  }
+  return storage
+}
+
+/**
+ * Analytics 이벤트 로깅 (보안 강화)
  */
 export function logAnalyticsEvent(eventName: string, parameters: Record<string, any> = {}): void {
   try {
+    // TODO: [보안강화-P7] 민감한 정보 필터링
+    // - 이메일, 전화번호 등 PII 제거
+    // - 사용자 ID는 해시화하여 전송
+    const sanitizedParams = sanitizeParameters(parameters)
+    
     if (analytics && import.meta.env.PROD) {
-      // 동적 임포트로 logEvent 사용
       import('firebase/analytics').then(({ logEvent }) => {
-        logEvent(analytics, eventName, parameters)
+        logEvent(analytics!, eventName, sanitizedParams)
       })
     } else {
-      console.log('📊 Analytics Event (Demo):', eventName, parameters)
+      console.log('📊 Analytics Event (Demo):', eventName, sanitizedParams)
     }
   } catch (error) {
     console.warn('Analytics 이벤트 로깅 실패:', error)
   }
 }
 
-// 개발 환경에서 자동 초기화
-if (import.meta.env.DEV) {
-  initializeFirebase().catch(console.error)
+/**
+ * 파라미터 삭제/마스킹
+ */
+function sanitizeParameters(params: Record<string, any>): Record<string, any> {
+  const sanitized = { ...params }
+  
+  // TODO: [보안강화-P8] PII 필터링 규칙 구현
+  // - 이메일 패턴 감지 및 마스킹
+  // - 전화번호 패턴 감지 및 마스킹
+  // - 신용카드 번호 패턴 감지 및 제거
+  
+  // 임시 구현
+  const sensitiveKeys = ['email', 'password', 'phone', 'ssn', 'creditCard']
+  sensitiveKeys.forEach(key => {
+    if (key in sanitized) {
+      delete sanitized[key]
+    }
+  })
+  
+  return sanitized
 }
 
-// Firebase 인스턴스 내보내기
+// 동기적 접근을 위한 getter (초기화 후에만 사용)
 export { app, auth, db, storage, analytics }
 
 // 기본 내보내기
 export default {
   initializeFirebase,
-  logAnalyticsEvent,
-  app,
-  auth,
-  db,
-  storage,
-  analytics
+  getFirebaseAuth,
+  getFirebaseDb,
+  getFirebaseStorage,
+  logAnalyticsEvent
 }
