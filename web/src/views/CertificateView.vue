@@ -12,7 +12,7 @@
           <div class="stat-card">
             <div class="stat-icon">
               <el-icon :size="32" color="#67C23A">
-                <Medal />
+                <Trophy />
               </el-icon>
             </div>
             <div class="stat-info">
@@ -38,7 +38,7 @@
           <div class="stat-card">
             <div class="stat-icon">
               <el-icon :size="32" color="#E6A23C">
-                <Trophy />
+                <CircleCheck />
               </el-icon>
             </div>
             <div class="stat-info">
@@ -68,7 +68,7 @@
           <div class="certificate-header">
             <div class="certificate-icon">
               <el-icon :size="24" color="#67C23A">
-                <Medal />
+                <Document />
               </el-icon>
             </div>
             <div class="certificate-info">
@@ -80,7 +80,7 @@
           <div class="certificate-details">
             <div class="detail-item">
               <span class="label">발급일:</span>
-              <span class="value">{{ formatDate(certificate.issuedAt) }}</span>
+              <span class="value">{{ formatDate(certificate.issuedAt || certificate.issueDate) }}</span>
             </div>
             <div class="detail-item">
               <span class="label">강사:</span>
@@ -159,7 +159,7 @@
           </div>
 
           <div class="issue-info">
-            <p class="issue-date">발급일: {{ formatDate(selectedCertificate.issuedAt) }}</p>
+            <p class="issue-date">발급일: {{ formatDate(selectedCertificate.issuedAt || selectedCertificate.issueDate) }}</p>
             <p class="issuer">QR 안전교육센터</p>
           </div>
         </div>
@@ -183,17 +183,18 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage } from 'element-plus'
 import { 
-  Medal, 
-  VideoPlay, 
   Trophy, 
+  VideoPlay, 
+  CircleCheck, 
   Loading, 
   View, 
   Download, 
-  Share 
+  Share,
+  Document
 } from '@element-plus/icons-vue'
-import { useLectureStore } from '@/stores/lectures'
+import { useLectureStore, type ExtendedLecture } from '@/stores/lectures'
 import { useAuthStore } from '@/stores/auth'
 import type { Certificate } from '@/types/global'
 import nativeBridge from '@/services/native-bridge'
@@ -225,7 +226,7 @@ const getLectureInstructor = (lectureId: string): string => {
 }
 
 const getLectureCategory = (lectureId: string): string => {
-  const lecture = lectureStore.lectures.find(l => l.id === lectureId)
+  const lecture = lectureStore.lectures.find(l => l.id === lectureId) as ExtendedLecture | undefined
   if (lecture?.leafCategory) {
     return `${lecture.mainCategory} > ${lecture.middleCategory} > ${lecture.leafCategory}`
   }
@@ -249,8 +250,9 @@ const downloadCertificate = async (certificate: Certificate): Promise<void> => {
   try {
     if (nativeBridge.isNativeApp()) {
       // 네이티브 앱에서 PDF 다운로드
-      if (certificate.pdfUrl) {
-        await nativeBridge.downloadFile(certificate.pdfUrl, `certificate_${certificate.certificateNumber}.pdf`)
+      const downloadUrl = certificate.pdfUrl || certificate.downloadUrl
+      if (downloadUrl) {
+        await nativeBridge.downloadFile(downloadUrl, `certificate_${certificate.certificateNumber}.pdf`)
         nativeBridge.showToast('수료증이 다운로드되었습니다.')
       } else {
         ElMessage.error('수료증 파일을 찾을 수 없습니다.')
@@ -292,7 +294,7 @@ const generateAndDownloadPDF = async (certificate: Certificate): Promise<void> =
           <div class="name">${userName.value}</div>
           <div class="course">${getLectureTitle(certificate.lectureId)}</div>
           <div class="instructor">강사: ${getLectureInstructor(certificate.lectureId)}</div>
-          <div class="date">발급일: ${formatDate(certificate.issuedAt)}</div>
+          <div class="date">발급일: ${formatDate(certificate.issuedAt || certificate.issueDate)}</div>
           <div class="issuer">QR 안전교육센터</div>
         </div>
       </body>

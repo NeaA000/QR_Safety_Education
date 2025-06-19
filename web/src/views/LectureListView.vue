@@ -26,7 +26,7 @@
           v-for="category in categoryStore.mainCategories"
           :key="category.id"
           :label="category.name"
-          :value="category.originalName"
+          :value="category.name"
         />
       </el-select>
 
@@ -41,7 +41,7 @@
           v-for="category in currentMiddleCategories"
           :key="category.id"
           :label="category.name"
-          :value="category.originalName"
+          :value="category.name"
         />
       </el-select>
 
@@ -56,7 +56,7 @@
           v-for="category in currentLeafCategories"
           :key="category.id"
           :label="category.name"
-          :value="category.originalName"
+          :value="category.name"
         />
       </el-select>
 
@@ -106,9 +106,9 @@
             <el-tag size="small" type="info">{{ lecture.level }}</el-tag>
             <el-tag 
               size="small" 
-              :type="getStatusTagType(lecture.status)"
+              :type="getStatusTagType(lectureStore.getLectureStatus(lecture))"
             >
-              {{ getStatusText(lecture.status) }}
+              {{ getStatusText(lectureStore.getLectureStatus(lecture)) }}
             </el-tag>
           </div>
 
@@ -121,7 +121,7 @@
           
           <!-- 진도 표시 -->
           <el-progress 
-            v-if="lecture.progress > 0"
+            v-if="lecture.progress && lecture.progress > 0"
             :percentage="lecture.progress"
             :stroke-width="6"
             :color="lecture.progress === 100 ? '#67C23A' : '#409EFF'"
@@ -141,10 +141,9 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { Search, VideoPlay, Loading } from '@element-plus/icons-vue'
-import { useLectureStore } from '@/stores/lectures'
+import { useLectureStore, type LectureLevel, type LectureStatus, type ExtendedLecture } from '@/stores/lectures'
 import { useCategoryStore } from '@/stores/categoryStore'
 import type { MainCategory, MiddleCategory, LeafCategory } from '@/types/category'
-import type { LectureLevel, LectureStatus } from '@/stores/lectures'
 
 // 스토어 및 라우터
 const router = useRouter()
@@ -164,12 +163,12 @@ const filteredLectures = computed(() => lectureStore.filteredLectures)
 
 const currentMiddleCategories = computed(() => {
   if (!selectedMainCategory.value || selectedMainCategory.value === '전체') return []
-  return categoryStore.getMiddleCategories(selectedMainCategory.value)
+  return categoryStore.getMiddleCategories(selectedMainCategory.value as MainCategory)
 })
 
 const currentLeafCategories = computed(() => {
   if (!selectedMiddleCategory.value) return []
-  return categoryStore.getLeafCategories(selectedMiddleCategory.value)
+  return categoryStore.getLeafCategories(selectedMiddleCategory.value as MiddleCategory)
 })
 
 // 메서드
@@ -213,7 +212,7 @@ const handleStatusChange = (): void => {
   lectureStore.setFilter({ status: selectedStatus.value || undefined })
 }
 
-const goToLecture = (lecture: any): void => {
+const goToLecture = (lecture: ExtendedLecture): void => {
   router.push(`/lectures/${lecture.id}/watch`)
 }
 
@@ -251,6 +250,7 @@ const getStatusText = (status: LectureStatus): string => {
 onMounted(async () => {
   try {
     await lectureStore.initialize()
+    await categoryStore.initialize()
   } catch (error) {
     console.error('강의 목록 로드 실패:', error)
   }

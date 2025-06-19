@@ -1,127 +1,187 @@
 // src/types/global.d.ts
-// 전역 타입 정의 파일
 
-// Android 네이티브 인터페이스 정의
-interface AndroidInterface {
-  // 기본 메서드
-  scanQR: () => string | Promise<string>
-  saveFile: (data: string, filename: string) => void
-  showToast: (message: string) => void
-  getDeviceInfo: () => string
-  requestPermission: (permission: string) => Promise<boolean>
-  
-  // 추가 메서드
-  downloadFile: (url: string, filename: string) => string | Promise<string>
-  openFile: (path: string) => boolean | Promise<boolean>
-  getAppVersion: () => string | Promise<string>
-  checkPermission: (permission: string) => boolean | Promise<boolean>
-  showAlert: (title: string, message: string) => boolean | Promise<boolean>
-  checkNetworkStatus: () => string | Promise<string>
-  getFCMToken: () => string | Promise<string>
+// 사용자 타입
+export interface User {
+  id: string
+  email: string
+  displayName: string
+  photoURL?: string
+  phoneNumber?: string
+  department?: string
+  position?: string
+  employeeId?: string
+  createdAt: Date
+  lastLoginAt: Date
+  isActive: boolean
+  role: UserRole
 }
 
-// iOS WebKit 인터페이스
-interface WebKitMessageHandlers {
-  [key: string]: {
-    postMessage: (message: any) => void
-  }
+export type UserRole = 'admin' | 'instructor' | 'student'
+
+// 강의 타입 (확장)
+export interface Lecture {
+  id: string
+  title: string
+  description?: string
+  category: string
+  mainCategory?: string
+  middleCategory?: string
+  leafCategory?: string
+  level: '초급' | '중급' | '고급'
+  duration: number // 초 단위
+  instructor?: string
+  thumbnailUrl?: string
+  videoUrl?: string
+  materials?: LectureMaterial[]
+  chapters?: Chapter[]
+  requirements?: string[]
+  objectives?: string[]
+  createdAt: Date
+  updatedAt?: Date
+  isActive: boolean
+  price?: number
+  progress?: number
+  watchedTime?: number
+  enrolledAt?: Date
+  expiresAt?: Date
+  lastAccessedAt?: Date
+  completedChapters?: number[]
+  certificates?: Certificate[]
 }
 
-// Window 확장
-declare global {
-  interface Window {
-    Android?: AndroidInterface
-    webkit?: {
-      messageHandlers: WebKitMessageHandlers
-    }
-    isNativeApp?: boolean
-  }
+// 챕터 타입
+export interface Chapter {
+  id: string
+  lectureId: string
+  title: string
+  description?: string
+  duration: number
+  order: number
+  videoUrl?: string
+  isCompleted?: boolean
+  watchedTime?: number
 }
 
-// 권한 타입
-export type Permission = 
-  | 'CAMERA' 
-  | 'STORAGE' 
-  | 'MICROPHONE' 
-  | 'LOCATION' 
-  | 'NOTIFICATIONS'
-  | 'BIOMETRIC'
-  | 'CONTACTS'
-  | 'PHONE'
-
-// 디바이스 정보
-export interface DeviceInfo {
-  platform: string
-  version: string
-  model: string
-  manufacturer: string
-  uuid: string
-  isVirtual: boolean
+// 강의 자료 타입
+export interface LectureMaterial {
+  id: string
+  name: string
+  type: 'pdf' | 'video' | 'doc' | 'ppt' | 'link' | 'other'
+  url: string
+  size?: number
+  uploadedAt: Date
 }
 
-// 앱 버전 정보
-export interface AppVersionInfo {
-  version: string
-  buildNumber: string
-  packageName: string
+// 수료증 타입
+export interface Certificate {
+  id: string
+  userId: string
+  lectureId: string
+  lectureTitle: string
+  userName: string
+  issueDate: Date
+  issuedAt?: Date  // issueDate와 issuedAt 둘 다 지원
+  certificateNumber: string
+  validUntil?: Date
+  status: CertificateStatus
+  downloadUrl?: string
+  pdfUrl?: string  // PDF 다운로드 URL
+  verificationCode?: string
 }
 
-// 네트워크 상태
-export interface NetworkStatus {
-  isConnected: boolean
-  type: 'wifi' | 'cellular' | 'none' | 'unknown'
-  strength?: number
+export type CertificateStatus = 'issued' | 'expired' | 'revoked'
+
+// 학습 기록 타입
+export interface LearningRecord {
+  id: string
+  userId: string
+  lectureId: string
+  chapterId?: string
+  startTime: Date
+  endTime?: Date
+  duration: number
+  progress: number
+  isCompleted: boolean
+  platform?: 'web' | 'mobile' | 'app'
+  deviceInfo?: any
 }
 
-// 앱 에러
-export interface AppError {
+// QR 코드 데이터 타입
+export interface QRCodeData {
+  type: 'lecture' | 'certificate' | 'user' | 'event'
+  lectureId?: string
+  certificateId?: string
+  userId?: string
+  eventId?: string
+  title?: string
+  duration?: number
+  expiresAt?: Date
+  metadata?: Record<string, any>
+}
+
+// API 응답 타입
+export interface ApiResponse<T> {
+  success: boolean
+  data?: T
+  error?: ApiError
+  message?: string
+  timestamp: Date
+}
+
+export interface ApiError {
   code: string
   message: string
   details?: any
 }
 
-// QR 코드 데이터
-export interface QRCodeData {
-  type: string
-  lectureId?: string
-  userId?: string
-  timestamp?: number
-  [key: string]: any
+// 페이지네이션 타입
+export interface Pagination {
+  page: number
+  limit: number
+  total: number
+  totalPages: number
 }
 
-// 사용자 정보
-export interface User {
-  uid: string
-  email: string
-  displayName?: string
-  photoURL?: string
-  emailVerified?: boolean
-  phoneNumber?: string
-  lastLoginAt?: Date
-  role?: string
+export interface PaginatedResponse<T> {
+  items: T[]
+  pagination: Pagination
 }
 
-// 강의 정보
-export interface Lecture {
-  id: string
-  title: string
-  description: string
-  duration: number
-  videoUrl: string
-  thumbnailUrl?: string
-  category: string
-  createdAt: Date
-  updatedAt: Date
-}
-
-// 수료증 정보
-export interface Certificate {
+// 알림 타입
+export interface Notification {
   id: string
   userId: string
-  lectureId: string
-  issuedAt: Date
-  certificateNumber: string
-  pdfUrl?: string
+  title: string
+  message: string
+  type: NotificationType
+  isRead: boolean
+  createdAt: Date
+  readAt?: Date
+  data?: any
 }
 
-export {}
+export type NotificationType = 'info' | 'success' | 'warning' | 'error' | 'lecture' | 'certificate'
+
+// 설정 타입
+export interface UserSettings {
+  userId: string
+  theme: 'light' | 'dark' | 'auto'
+  language: 'ko' | 'en'
+  notifications: NotificationSettings
+  privacy: PrivacySettings
+}
+
+export interface NotificationSettings {
+  email: boolean
+  push: boolean
+  sms: boolean
+  lectureReminders: boolean
+  certificateAlerts: boolean
+  marketingEmails: boolean
+}
+
+export interface PrivacySettings {
+  showProfile: boolean
+  showProgress: boolean
+  allowAnalytics: boolean
+}

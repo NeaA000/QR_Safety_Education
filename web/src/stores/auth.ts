@@ -1,330 +1,274 @@
+// src/stores/auth.ts
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import type { User as FirebaseUser } from 'firebase/auth'
-import {
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
-  signOut,
-  sendPasswordResetEmail,
-  onAuthStateChanged,
-  updateProfile,
-  signInWithPopup,
-  GoogleAuthProvider
-} from 'firebase/auth'
-import { getFirebaseAuth } from '@/services/firebase'
-import type { Auth } from 'firebase/auth'
+import { useRouter } from 'vue-router'
+import type { User, ApiResponse } from '@/types/global'
 
-// 사용자 타입 정의
-interface User {
-  uid: string
+export interface LoginCredentials {
   email: string
-  displayName?: string
-  photoURL?: string
-  emailVerified?: boolean
+  password: string
+  rememberMe?: boolean
+}
+
+export interface RegisterData {
+  email: string
+  password: string
+  displayName: string
   phoneNumber?: string
-  lastLoginAt?: Date
-  role?: string
-}
-
-// QR 코드 데이터 타입
-interface QRCodeData {
-  type: string
-  lectureId?: string
-  userId?: string
-  timestamp?: number
-  signature?: string
-  expiresAt?: number
-  nonce?: string
-  [key: string]: any
-}
-
-type LoginMethod = 'email' | 'qr' | null
-
-interface LoginAttempt {
-  email: string
-  attempts: number
-  lastAttempt: Date
-  blockedUntil?: Date
+  department?: string
+  position?: string
+  employeeId?: string
 }
 
 export const useAuthStore = defineStore('auth', () => {
+  const router = useRouter()
+  
   // 상태
   const user = ref<User | null>(null)
-  const loading = ref(false)
+  const token = ref<string | null>(null)
+  const refreshToken = ref<string | null>(null)
+  const isLoading = ref(false)
   const error = ref<string | null>(null)
-  const lastLoginMethod = ref<LoginMethod>(null)
-  const isInitialized = ref(false)
-  const loginAttempts = ref<Map<string, LoginAttempt>>(new Map())
-  const MAX_LOGIN_ATTEMPTS = 5
-  const BLOCK_DURATION_MINUTES = 30
 
   // 계산된 속성
-  const isAuthenticated = computed(() => !!user.value)
-  const currentUser = computed(() => user.value)
-  const isLoading = computed(() => loading.value)
-  const authError = computed(() => error.value)
+  const isAuthenticated = computed(() => !!user.value && !!token.value)
+  const isAdmin = computed(() => user.value?.role === 'admin')
+  const isInstructor = computed(() => user.value?.role === 'instructor')
+  const isStudent = computed(() => user.value?.role === 'student')
 
-  const initializeAuth = async (): Promise<void> => {
-    try {
-      const auth = await getFirebaseAuth()
-      return new Promise((resolve) => {
-        const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-          if (firebaseUser) {
-            user.value = {
-              uid: firebaseUser.uid,
-              email: firebaseUser.email || '',
-              displayName: firebaseUser.displayName || undefined,
-              photoURL: firebaseUser.photoURL || undefined,
-              emailVerified: firebaseUser.emailVerified,
-              phoneNumber: firebaseUser.phoneNumber || undefined,
-              lastLoginAt: new Date()
-            }
-          } else {
-            user.value = null
-          }
-          isInitialized.value = true
-          unsubscribe()
-          resolve()
-        })
-      })
-    } catch (err) {
-      console.error('인증 초기화 실패:', err)
-      isInitialized.value = true
-      throw err
+  // 로컬 스토리지에서 토큰 복원
+  function initializeAuth() {
+    const savedToken = localStorage.getItem('authToken')
+    const savedUser = localStorage.getItem('user')
+    
+    if (savedToken && savedUser) {
+      try {
+        token.value = savedToken
+        user.value = JSON.parse(savedUser)
+      } catch (err) {
+        console.error('인증 정보 복원 실패:', err)
+        clearAuth()
+      }
     }
   }
 
-  const checkLoginAttempts = (email: string): boolean => {
-    const attempt = loginAttempts.value.get(email)
-    if (!attempt) return true
-    if (attempt.blockedUntil && new Date() < attempt.blockedUntil) {
-      const remainingMinutes = Math.ceil(
-        (attempt.blockedUntil.getTime() - Date.now()) / 1000 / 60
-      )
-      error.value = `너무 많은 로그인 시도로 ${remainingMinutes}분 동안 차단되었습니다.`
+  // 로그인
+  async function login(credentials: LoginCredentials): Promise<boolean> {
+    isLoading.value = true
+    error.value = null
+
+    try {
+      // TODO: 실제 API 호출로 교체
+      await new Promise(resolve => setTimeout(resolve, 1000))
+
+      // 더미 응답
+      const response: ApiResponse<{ user: User; token: string; refreshToken: string }> = {
+        success: true,
+        data: {
+          user: {
+            id: '1',
+            email: credentials.email,
+            displayName: '홍길동',
+            photoURL: 'https://via.placeholder.com/150',
+            phoneNumber: '010-1234-5678',
+            department: '안전관리팀',
+            position: '대리',
+            employeeId: 'EMP001',
+            createdAt: new Date('2024-01-01'),
+            lastLoginAt: new Date(),
+            isActive: true,
+            role: 'student'
+          },
+          token: 'dummy-jwt-token',
+          refreshToken: 'dummy-refresh-token'
+        },
+        timestamp: new Date()
+      }
+
+      if (response.success && response.data) {
+        user.value = response.data.user
+        token.value = response.data.token
+        refreshToken.value = response.data.refreshToken
+
+        // 로컬 스토리지에 저장
+        if (credentials.rememberMe) {
+          localStorage.setItem('authToken', response.data.token)
+          localStorage.setItem('user', JSON.stringify(response.data.user))
+        } else {
+          sessionStorage.setItem('authToken', response.data.token)
+          sessionStorage.setItem('user', JSON.stringify(response.data.user))
+        }
+
+        return true
+      }
+
+      throw new Error('로그인에 실패했습니다.')
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : '로그인 중 오류가 발생했습니다.'
+      return false
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  // 회원가입
+  async function register(data: RegisterData): Promise<boolean> {
+    isLoading.value = true
+    error.value = null
+
+    try {
+      // TODO: 실제 API 호출로 교체
+      await new Promise(resolve => setTimeout(resolve, 1500))
+
+      // 더미 응답
+      const response: ApiResponse<{ user: User; token: string }> = {
+        success: true,
+        data: {
+          user: {
+            id: Date.now().toString(),
+            ...data,
+            createdAt: new Date(),
+            lastLoginAt: new Date(),
+            isActive: true,
+            role: 'student'
+          },
+          token: 'dummy-jwt-token'
+        },
+        timestamp: new Date()
+      }
+
+      if (response.success) {
+        return true
+      }
+
+      throw new Error('회원가입에 실패했습니다.')
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : '회원가입 중 오류가 발생했습니다.'
+      return false
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  // 로그아웃
+  async function logout() {
+    try {
+      // TODO: 서버에 로그아웃 요청
+      await new Promise(resolve => setTimeout(resolve, 500))
+    } catch (err) {
+      console.error('로그아웃 요청 실패:', err)
+    } finally {
+      clearAuth()
+    }
+  }
+
+  // 인증 정보 삭제
+  function clearAuth() {
+    user.value = null
+    token.value = null
+    refreshToken.value = null
+    localStorage.removeItem('authToken')
+    localStorage.removeItem('user')
+    sessionStorage.removeItem('authToken')
+    sessionStorage.removeItem('user')
+  }
+
+  // 토큰 갱신
+  async function refreshAuthToken(): Promise<boolean> {
+    if (!refreshToken.value) return false
+
+    try {
+      // TODO: 실제 API 호출로 교체
+      await new Promise(resolve => setTimeout(resolve, 500))
+
+      // 더미 응답
+      const newToken = 'new-dummy-jwt-token'
+      token.value = newToken
+      
+      // 스토리지 업데이트
+      if (localStorage.getItem('authToken')) {
+        localStorage.setItem('authToken', newToken)
+      } else if (sessionStorage.getItem('authToken')) {
+        sessionStorage.setItem('authToken', newToken)
+      }
+
+      return true
+    } catch (err) {
+      console.error('토큰 갱신 실패:', err)
+      clearAuth()
+      await router.push('/login')
       return false
     }
-    if (attempt.blockedUntil && new Date() >= attempt.blockedUntil) {
-      loginAttempts.value.delete(email)
+  }
+
+  // 프로필 업데이트
+  async function updateProfile(updates: Partial<User>): Promise<boolean> {
+    if (!user.value) return false
+
+    isLoading.value = true
+    error.value = null
+
+    try {
+      // TODO: 실제 API 호출로 교체
+      await new Promise(resolve => setTimeout(resolve, 1000))
+
+      // 사용자 정보 업데이트
+      user.value = { ...user.value, ...updates }
+      
+      // 스토리지 업데이트
+      if (localStorage.getItem('user')) {
+        localStorage.setItem('user', JSON.stringify(user.value))
+      } else if (sessionStorage.getItem('user')) {
+        sessionStorage.setItem('user', JSON.stringify(user.value))
+      }
+
       return true
-    }
-    return attempt.attempts < MAX_LOGIN_ATTEMPTS
-  }
-
-  const recordLoginAttempt = (email: string, success: boolean) => {
-    const attempt = loginAttempts.value.get(email) || {
-      email,
-      attempts: 0,
-      lastAttempt: new Date()
-    }
-    if (success) {
-      loginAttempts.value.delete(email)
-    } else {
-      attempt.attempts++
-      attempt.lastAttempt = new Date()
-      if (attempt.attempts >= MAX_LOGIN_ATTEMPTS) {
-        attempt.blockedUntil = new Date(
-          Date.now() + BLOCK_DURATION_MINUTES * 60 * 1000
-        )
-      }
-      loginAttempts.value.set(email, attempt)
-    }
-  }
-
-  const validatePasswordStrength = (password: string): { valid: boolean; message?: string } => {
-    if (password.length < 8) {
-      return { valid: false, message: '비밀번호는 최소 8자 이상이어야 합니다.' }
-    }
-    const hasUpperCase = /[A-Z]/.test(password)
-    const hasLowerCase = /[a-z]/.test(password)
-    const hasNumbers = /\d/.test(password)
-    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password)
-    const complexity = [hasUpperCase, hasLowerCase, hasNumbers, hasSpecialChar].filter(Boolean).length
-    if (complexity < 3) {
-      return {
-        valid: false,
-        message: '대문자, 소문자, 숫자, 특수문자 중 3가지 이상을 포함해야 합니다.'
-      }
-    }
-    return { valid: true }
-  }
-
-  const login = async (email: string, password: string): Promise<void> => {
-    try {
-      loading.value = true
-      error.value = null
-      if (!checkLoginAttempts(email)) {
-        loading.value = false
-        return
-      }
-      const auth = await getFirebaseAuth()
-      const userCredential = await signInWithEmailAndPassword(auth, email, password)
-      const firebaseUser = userCredential.user
-      user.value = {
-        uid: firebaseUser.uid,
-        email: firebaseUser.email || '',
-        displayName: firebaseUser.displayName || undefined,
-        photoURL: firebaseUser.photoURL || undefined,
-        emailVerified: firebaseUser.emailVerified,
-        phoneNumber: firebaseUser.phoneNumber || undefined,
-        lastLoginAt: new Date()
-      }
-      lastLoginMethod.value = 'email'
-      recordLoginAttempt(email, true)
-      console.log('로그인 성공:', user.value.email)
-    } catch (err: any) {
-      recordLoginAttempt(email, false)
-      error.value = getErrorMessage(err)
-      console.error('로그인 실패:', err)
-      throw err
+    } catch (err) {
+      error.value = '프로필 업데이트에 실패했습니다.'
+      return false
     } finally {
-      loading.value = false
+      isLoading.value = false
     }
   }
 
-  const loginWithQR = async (qrData: string): Promise<void> => {
+  // 비밀번호 변경
+  async function changePassword(currentPassword: string, newPassword: string): Promise<boolean> {
+    isLoading.value = true
+    error.value = null
+
     try {
-      loading.value = true
-      error.value = null
-      let parsedData: QRCodeData
-      try {
-        parsedData = JSON.parse(qrData)
-      } catch {
-        throw new Error('유효하지 않은 QR 코드 형식입니다.')
-      }
-      if (!parsedData.type || parsedData.type !== 'login') {
-        throw new Error('로그인용 QR 코드가 아닙니다.')
-      }
-      if (!parsedData.signature) {
-        throw new Error('QR 코드 서명이 없습니다.')
-      }
-      if (parsedData.expiresAt && Date.now() > parsedData.expiresAt) {
-        throw new Error('만료된 QR 코드입니다.')
-      }
-      if (!parsedData.nonce) {
-        throw new Error('QR 코드 nonce가 없습니다.')
-      }
-      lastLoginMethod.value = 'qr'
-      console.log('QR 로그인 성공')
-    } catch (err: any) {
-      error.value = err.message || 'QR 로그인 실패'
-      console.error('QR 로그인 실패:', err)
-      throw err
+      // TODO: 실제 API 호출로 교체
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      return true
+    } catch (err) {
+      error.value = '비밀번호 변경에 실패했습니다.'
+      return false
     } finally {
-      loading.value = false
+      isLoading.value = false
     }
-  }
-
-  const register = async (email: string, password: string, displayName?: string): Promise<void> => {
-    try {
-      loading.value = true
-      error.value = null
-      const passwordValidation = validatePasswordStrength(password)
-      if (!passwordValidation.valid) {
-        error.value = passwordValidation.message!
-        loading.value = false
-        return
-      }
-      const auth = await getFirebaseAuth()
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password)
-      const firebaseUser = userCredential.user
-      if (displayName) {
-        await updateProfile(firebaseUser, { displayName })
-      }
-      user.value = {
-        uid: firebaseUser.uid,
-        email: firebaseUser.email || '',
-        displayName: displayName || undefined,
-        emailVerified: firebaseUser.emailVerified,
-        lastLoginAt: new Date()
-      }
-      console.log('회원가입 성공:', user.value.email)
-    } catch (err: any) {
-      error.value = getErrorMessage(err)
-      console.error('회원가입 실패:', err)
-      throw err
-    } finally {
-      loading.value = false
-    }
-  }
-
-  const logout = async (): Promise<void> => {
-    try {
-      loading.value = true
-      error.value = null
-      const auth = await getFirebaseAuth()
-      await signOut(auth)
-      user.value = null
-      lastLoginMethod.value = null
-      console.log('로그아웃 완료')
-    } catch (err: any) {
-      error.value = getErrorMessage(err)
-      console.error('로그아웃 실패:', err)
-      throw err
-    } finally {
-      loading.value = false
-    }
-  }
-
-  // Google 로그인 함수 추가
-  const signInWithGoogle = async (): Promise<void> => {
-    try {
-      loading.value = true
-      error.value = null
-      const auth = await getFirebaseAuth()
-      const provider = new GoogleAuthProvider()
-      const result = await signInWithPopup(auth, provider)
-      const firebaseUser = result.user
-      user.value = {
-        uid: firebaseUser.uid,
-        email: firebaseUser.email || '',
-        displayName: firebaseUser.displayName || undefined,
-        photoURL: firebaseUser.photoURL || undefined,
-        emailVerified: firebaseUser.emailVerified,
-        phoneNumber: firebaseUser.phoneNumber || undefined,
-        lastLoginAt: new Date()
-      }
-      lastLoginMethod.value = 'email'
-      console.log('Google 로그인 성공:', user.value.email)
-    } catch (err: any) {
-      error.value = getErrorMessage(err)
-      console.error('Google 로그인 실패:', err)
-      throw err
-    } finally {
-      loading.value = false
-    }
-  }
-
-  const getErrorMessage = (error: any): string => {
-    const errorMessages: Record<string, string> = {
-      'auth/user-not-found': '등록되지 않은 이메일입니다.',
-      'auth/wrong-password': '비밀번호가 올바르지 않습니다.',
-      'auth/email-already-in-use': '이미 사용 중인 이메일입니다.',
-      'auth/weak-password': '비밀번호가 보안 정책을 충족하지 않습니다.',
-      'auth/invalid-email': '유효하지 않은 이메일 형식입니다.',
-      'auth/network-request-failed': '네트워크 연결을 확인해주세요.',
-      'auth/too-many-requests': '너무 많은 시도입니다. 잠시 후 다시 시도해주세요.'
-    }
-    const errorCode = error?.code || ''
-    return errorMessages[errorCode] || '로그인 처리 중 오류가 발생했습니다.'
   }
 
   return {
+    // 상태
     user,
-    loading,
-    error,
-    lastLoginMethod,
-    isInitialized,
-    isAuthenticated,
-    currentUser,
+    token,
     isLoading,
-    authError,
+    error,
+
+    // 계산된 속성
+    isAuthenticated,
+    isAdmin,
+    isInstructor,
+    isStudent,
+
+    // 액션
     initializeAuth,
     login,
-    loginWithQR,
     register,
     logout,
-    validatePasswordStrength,
-    signInWithGoogle // 반드시 반환값에 포함!
+    clearAuth,
+    refreshAuthToken,
+    updateProfile,
+    changePassword
   }
 })

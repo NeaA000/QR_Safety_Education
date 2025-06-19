@@ -1,6 +1,8 @@
 // 📱 web/src/services/native-bridge.ts
 // 네이티브 앱과의 브리지 통신 서비스
 
+import type { MainCategory, MiddleCategory, LeafCategory } from '@/types/category'
+
 export interface NativeBridgeService {
   // 앱 환경 체크
   isNativeApp(): boolean
