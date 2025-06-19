@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#1976D2" />
+    <meta name="description" content="QR 코드 기반 안전교육 시스템" />
+    
+    <!-- 보안 정책 헤더 (플레이스토어 정책 준수) -->
+    <meta http-equiv="Content-Security-Policy" 
+          content="default-src 'self'; 
+                   script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.firebaseapp.com https://*.googleapis.com; 
+                   style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; 
+                   font-src 'self' https://fonts.gstatic.com; 
+                   img-src 'self' data: blob: https://*.googleapis.com https://*.firebaseapp.com; 
+                   connect-src 'self' https://*.firebaseio.com https://*.googleapis.com wss://*.firebaseio.com; 
+                   media-src 'self' blob: https://*.firebaseapp.com;" />
+    
+    <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+    <meta http-equiv="X-Frame-Options" content="DENY" />
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block" />
+    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin" />
+    
+    <!-- PWA 매니페스트 -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="QR 안전교육" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    
+    <!-- 프리로드 최적화 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    
+    <title>QR 안전교육</title>
+  </head>
+  <body>
+    <noscript>
+      <strong>죄송합니다. JavaScript가 비활성화되어 있으면 앱이 제대로 작동하지 않습니다. 활성화해주세요.</strong>
+    </noscript>
+    
+    <!-- Vue 앱 마운트 지점 -->
+    <div id="app"></div>
+    
+    <!-- TypeScript 메인 파일 -->
+    <script type="module" src="/src/main.ts"></script>
+    
+    <!-- Native Bridge 초기화 (하이브리드 앱용) -->
+    <script>
+      // Android WebView에서 Native 함수 사용 가능한지 확인
+      window.isNativeApp = !!(window.Android || window.webkit?.messageHandlers);
+      
+      // Native Bridge 초기화 대기
+      if (window.isNativeApp) {
+        console.log('하이브리드 앱 환경 감지됨');
+      } else {
+        console.log('웹 브라우저 환경');
+      }
+    </script>
+  </body>
+</html>
