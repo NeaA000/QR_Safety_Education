@@ -4,133 +4,108 @@
     <div class="background-pattern"></div>
     
     <div class="login-content">
-      <!-- 메인 로그인 폼 -->
-      <div class="main-login-section">
-        <el-card class="login-card" shadow="hover">
-          <!-- 헤더 -->
-          <div class="login-header">
-            <div class="logo-section">
-              <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="#409EFF">
-                <path d="M12,1L3,5V11C3,16.55 6.84,21.74 12,23C17.16,21.74 21,16.55 21,11V5L12,1M12,7C13.4,7 14.8,8.6 14.8,10V11H16V19H8V11H9.2V10C9.2,8.6 10.6,7 12,7M12,8.2C11.2,8.2 10.4,8.7 10.4,10V11H13.6V10C13.6,8.7 12.8,8.2 12,8.2Z"/>
-              </svg>
-              <h1 class="app-title">QR 안전교육</h1>
-              <p class="app-description">스마트한 안전교육 관리 시스템</p>
-            </div>
+      <!-- 메인 로그인 폼만 표시 (QR 섹션 제거) -->
+      <el-card class="login-card" shadow="hover">
+        <!-- 헤더 -->
+        <div class="login-header">
+          <div class="logo-section">
+            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="#409EFF">
+              <path d="M12,1L3,5V11C3,16.55 6.84,21.74 12,23C17.16,21.74 21,16.55 21,11V5L12,1M12,7C13.4,7 14.8,8.6 14.8,10V11H16V19H8V11H9.2V10C9.2,8.6 10.6,7 12,7M12,8.2C11.2,8.2 10.4,8.7 10.4,10V11H13.6V10C13.6,8.7 12.8,8.2 12,8.2Z"/>
+            </svg>
+            <h1 class="app-title">QR 안전교육</h1>
+            <p class="app-description">스마트한 안전교육 관리 시스템</p>
           </div>
+        </div>
+        
+        <!-- 로그인 폼 -->
+        <el-form
+          ref="loginFormRef"
+          :model="loginForm"
+          :rules="loginRules"
+          @submit.prevent="handleLogin"
+          size="large"
+          label-width="0"
+        >
+          <el-form-item prop="email">
+            <el-input
+              v-model="loginForm.email"
+              type="email"
+              placeholder="이메일을 입력하세요"
+              :prefix-icon="Message"
+              clearable
+            />
+          </el-form-item>
           
-          <!-- 로그인 폼 -->
-          <el-form
-            ref="loginFormRef"
-            :model="loginForm"
-            :rules="loginRules"
-            @submit.prevent="handleLogin"
-            size="large"
-            label-width="0"
-          >
-            <el-form-item prop="email">
-              <el-input
-                v-model="loginForm.email"
-                type="email"
-                placeholder="이메일을 입력하세요"
-                :prefix-icon="Message"
-                clearable
-              />
-            </el-form-item>
-            
-            <el-form-item prop="password">
-              <el-input
-                v-model="loginForm.password"
-                type="password"
-                placeholder="비밀번호를 입력하세요"
-                :prefix-icon="Lock"
-                show-password
-                clearable
-                @keyup.enter="handleLogin"
-              />
-            </el-form-item>
-            
-            <!-- 비밀번호 찾기 링크 -->
-            <div class="forgot-password">
-              <el-link type="primary" @click="showForgotPassword">
-                비밀번호를 잊으셨나요?
-              </el-link>
-            </div>
-            
-            <!-- 로그인 버튼 -->
-            <el-button
-              type="primary"
-              size="large"
-              :loading="isLoading"
-              :disabled="!isFormValid"
-              @click="handleLogin"
-              class="login-button"
-            >
-              {{ isLoading ? '로그인 중...' : '로그인' }}
-            </el-button>
-          </el-form>
+          <el-form-item prop="password">
+            <el-input
+              v-model="loginForm.password"
+              type="password"
+              placeholder="비밀번호를 입력하세요"
+              :prefix-icon="Lock"
+              show-password
+              clearable
+              @keyup.enter="handleLogin"
+            />
+          </el-form-item>
           
-          <!-- 구분선 -->
-          <el-divider>또는</el-divider>
-          
-          <!-- 소셜 로그인 -->
-          <div class="social-login-section">
-            <el-button
-              size="large"
-              :loading="isSocialLoading.google"
-              @click="handleGoogleLogin"
-              class="social-button google-button"
-            >
-              <template #icon>
-                <img src="/icons/google.svg" alt="Google" class="social-icon" v-if="!isSocialLoading.google">
-              </template>
-              Google로 로그인
-            </el-button>
-            
-            <el-button
-              size="large"
-              :loading="isSocialLoading.naver"
-              @click="handleNaverLogin"
-              class="social-button naver-button"
-            >
-              <template #icon>
-                <img src="/icons/naver.svg" alt="Naver" class="social-icon" v-if="!isSocialLoading.naver">
-              </template>
-              네이버로 로그인
-            </el-button>
-          </div>
-          
-          <!-- 회원가입 링크 -->
-          <div class="register-section">
-            <span class="register-text">계정이 없으신가요?</span>
-            <el-link type="primary" @click="showRegister">
-              회원가입
+          <!-- 비밀번호 찾기 링크 -->
+          <div class="forgot-password">
+            <el-link type="primary" @click="showForgotPassword">
+              비밀번호를 잊으셨나요?
             </el-link>
           </div>
-        </el-card>
-      </div>
-      
-      <!-- QR 로그인 섹션 -->
-      <div class="qr-login-section">
-        <el-card class="qr-card" shadow="hover">
-          <div class="qr-content">
-            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="#1976d2">
-              <path d="M3 3h18v18H3V3zm16 16V5H5v14h14zM7 7h2v2H7V7zm0 4h2v2H7v-2zm0 4h2v2H7v-2zm4-8h2v2h-2V7zm0 4h2v2h-2v-2zm0 4h2v2h-2v-2zm4-8h2v2h-2V7zm0 4h2v2h-2v-2zm0 4h2v2h-2v-2z"/>
-            </svg>
-            <div class="qr-text">
-              <h3>QR 코드로 빠른 로그인</h3>
-              <p>QR 코드를 스캔하여 간편하게 로그인하세요</p>
-            </div>
-            <el-button
-              type="primary"
-              :loading="isQRLoading"
-              @click="handleQRLogin"
-              class="qr-button"
-            >
-              QR 스캔
-            </el-button>
-          </div>
-        </el-card>
-      </div>
+          
+          <!-- 로그인 버튼 -->
+          <el-button
+            type="primary"
+            size="large"
+            :loading="isLoading"
+            :disabled="!isFormValid"
+            @click="handleLogin"
+            class="login-button"
+          >
+            {{ isLoading ? '로그인 중...' : '로그인' }}
+          </el-button>
+        </el-form>
+        
+        <!-- 구분선 -->
+        <el-divider>또는</el-divider>
+        
+        <!-- 소셜 로그인 -->
+        <div class="social-login-section">
+          <el-button
+            size="large"
+            :loading="isSocialLoading.google"
+            @click="handleGoogleLogin"
+            class="social-button google-button"
+          >
+            <template #icon>
+              <img src="/icons/google.svg" alt="Google" class="social-icon" v-if="!isSocialLoading.google">
+            </template>
+            Google로 로그인
+          </el-button>
+          
+          <el-button
+            size="large"
+            :loading="isSocialLoading.naver"
+            @click="handleNaverLogin"
+            class="social-button naver-button"
+          >
+            <template #icon>
+              <img src="/icons/naver.svg" alt="Naver" class="social-icon" v-if="!isSocialLoading.naver">
+            </template>
+            네이버로 로그인
+          </el-button>
+        </div>
+        
+        <!-- 회원가입 링크 -->
+        <div class="register-section">
+          <span class="register-text">계정이 없으신가요?</span>
+          <el-link type="primary" @click="showRegister">
+            회원가입
+          </el-link>
+        </div>
+      </el-card>
     </div>
     
     <!-- 비밀번호 찾기 다이얼로그 -->
@@ -169,10 +144,9 @@
 <script>
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage } from 'element-plus'
 import { User, Message, Lock } from '@element-plus/icons-vue'
 import { useAuthStore } from '@/stores/auth'
-import nativeBridge from '@/services/native-bridge'
 import { logAnalyticsEvent } from '@/services/firebase'
 
 export default {
@@ -192,7 +166,6 @@ export default {
     
     // 상태
     const isLoading = ref(false)
-    const isQRLoading = ref(false)
     const isForgotLoading = ref(false)
     const isSocialLoading = reactive({
       google: false,
@@ -276,13 +249,6 @@ export default {
         
         ElMessage.error(errorMessage)
         
-        // Analytics 이벤트
-        logAnalyticsEvent('login', {
-          method: 'email',
-          success: false,
-          error: error.code
-        })
-        
       } finally {
         isLoading.value = false
       }
@@ -314,13 +280,6 @@ export default {
           ElMessage.error('Google 로그인에 실패했습니다.')
         }
         
-        // Analytics 이벤트
-        logAnalyticsEvent('login', {
-          method: 'google',
-          success: false,
-          error: error.code
-        })
-        
       } finally {
         isSocialLoading.google = false
       }
@@ -341,77 +300,6 @@ export default {
         
       } finally {
         isSocialLoading.naver = false
-      }
-    }
-    
-    /**
-     * QR 로그인
-     */
-    const handleQRLogin = async () => {
-      try {
-        isQRLoading.value = true
-        
-        // 카메라 권한 확인
-        if (nativeBridge.isNativeApp()) {
-          const hasPermission = await nativeBridge.requestCameraPermission()
-          if (!hasPermission) {
-            ElMessage.warning('카메라 권한이 필요합니다.')
-            return
-          }
-        }
-        
-        // QR 코드 스캔
-        const qrResult = await nativeBridge.scanQR()
-        
-        if (qrResult && qrResult.data) {
-          // QR 코드 데이터 처리
-          await processQRLogin(qrResult.data)
-        }
-        
-      } catch (error) {
-        console.error('QR 로그인 실패:', error)
-        
-        if (error.message.includes('권한')) {
-          ElMessage.warning('카메라 권한이 필요합니다.')
-        } else if (error.message.includes('취소')) {
-          // 사용자가 취소한 경우 메시지 표시하지 않음
-        } else {
-          ElMessage.error('QR 스캔에 실패했습니다.')
-        }
-        
-      } finally {
-        isQRLoading.value = false
-      }
-    }
-    
-    /**
-     * QR 로그인 데이터 처리
-     */
-    const processQRLogin = async (qrData) => {
-      try {
-        // QR 데이터 검증 및 파싱
-        const loginData = JSON.parse(qrData)
-        
-        if (loginData.type === 'qr_login' && loginData.token) {
-          // 서버에 QR 토큰으로 로그인 요청
-          await authStore.signInWithQRToken(loginData.token)
-          
-          ElMessage.success('QR 로그인되었습니다.')
-          
-          // Analytics 이벤트
-          logAnalyticsEvent('login', {
-            method: 'qr',
-            success: true
-          })
-          
-          router.replace('/home')
-        } else {
-          throw new Error('유효하지 않은 QR 코드입니다.')
-        }
-        
-      } catch (error) {
-        console.error('QR 데이터 처리 실패:', error)
-        ElMessage.error('유효하지 않은 QR 코드입니다.')
       }
     }
     
@@ -460,14 +348,7 @@ export default {
      * 회원가입 화면 표시
      */
     const showRegister = () => {
-      ElMessageBox.alert(
-        '회원가입 기능은 관리자에게 문의하거나 QR 코드를 통해 진행해 주세요.',
-        '회원가입',
-        {
-          confirmButtonText: '확인',
-          type: 'info'
-        }
-      )
+      ElMessage.info('회원가입은 관리자에게 문의해주세요.')
     }
     
     // 라이프사이클
@@ -491,7 +372,6 @@ export default {
       
       // 상태
       isLoading,
-      isQRLoading,
       isForgotLoading,
       isSocialLoading,
       showForgotDialog,
@@ -509,7 +389,6 @@ export default {
       handleLogin,
       handleGoogleLogin,
       handleNaverLogin,
-      handleQRLogin,
       showForgotPassword,
       handleForgotPassword,
       showRegister
@@ -543,24 +422,15 @@ export default {
 
 .login-content {
   display: flex;
-  gap: 30px;
-  align-items: flex-start;
+  justify-content: center;
+  align-items: center;
   width: 100%;
-  max-width: 900px;
+  max-width: 400px;
   z-index: 1;
 }
 
-.main-login-section {
-  flex: 1;
-  max-width: 400px;
-}
-
-.qr-login-section {
-  flex: 0 0 280px;
-}
-
-.login-card,
-.qr-card {
+.login-card {
+  width: 100%;
   border-radius: 16px;
   border: none;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
@@ -660,37 +530,6 @@ export default {
   margin-right: 8px;
 }
 
-.qr-content {
-  text-align: center;
-  padding: 20px;
-}
-
-.qr-text {
-  margin: 20px 0;
-}
-
-.qr-text h3 {
-  font-size: 18px;
-  font-weight: 600;
-  color: #303133;
-  margin: 0 0 8px 0;
-}
-
-.qr-text p {
-  font-size: 14px;
-  color: #606266;
-  margin: 0;
-  line-height: 1.4;
-}
-
-.qr-button {
-  width: 100%;
-  height: 48px;
-  font-size: 16px;
-  font-weight: 600;
-  border-radius: 8px;
-}
-
 .dialog-footer {
   display: flex;
   justify-content: flex-end;
@@ -698,34 +537,13 @@ export default {
 }
 
 /* 반응형 디자인 */
-@media (max-width: 768px) {
-  .login-content {
-    flex-direction: column;
-    align-items: center;
-  }
-  
-  .qr-login-section {
-    flex: none;
-    width: 100%;
-    max-width: 400px;
-  }
-  
-  .app-title {
-    font-size: 24px;
-  }
-}
-
 @media (max-width: 480px) {
   .login-container {
     padding: 15px;
   }
   
   .app-title {
-    font-size: 22px;
-  }
-  
-  .qr-text h3 {
-    font-size: 16px;
+    font-size: 24px;
   }
 }
 
@@ -735,8 +553,7 @@ export default {
     background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
   }
   
-  .login-card,
-  .qr-card {
+  .login-card {
     background: rgba(30, 30, 30, 0.95);
     border: 1px solid rgba(255, 255, 255, 0.1);
   }
@@ -746,13 +563,8 @@ export default {
   }
   
   .app-description,
-  .register-text,
-  .qr-text p {
+  .register-text {
     color: #b0b0b0;
-  }
-  
-  .qr-text h3 {
-    color: #ffffff;
   }
   
   .google-button {

@@ -1,586 +1,510 @@
 <template>
-  <div class="home-view">
+  <div class="home-container">
     <!-- 헤더 -->
     <div class="header">
-      <div class="welcome-section">
-        <h1 class="welcome-title">안녕하세요!</h1>
-        <p class="welcome-subtitle">{{ userName }}님, 오늘도 안전한 하루 되세요</p>
+      <div class="header-content">
+        <h1 class="page-title">안전교육 관리</h1>
+        <el-dropdown trigger="click" @command="handleCommand">
+          <el-button circle>
+            <el-icon><User /></el-icon>
+          </el-button>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item command="profile">
+                <el-icon><User /></el-icon>
+                프로필
+              </el-dropdown-item>
+              <el-dropdown-item command="settings">
+                <el-icon><Setting /></el-icon>
+                설정
+              </el-dropdown-item>
+              <el-dropdown-item divided command="logout">
+                <el-icon><SwitchButton /></el-icon>
+                로그아웃
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
       </div>
-      <el-button 
-        type="primary" 
-        :icon="Scan" 
-        @click="handleQRScan"
-        class="qr-scan-btn"
-      >
-        QR 스캔
-      </el-button>
     </div>
 
-    <!-- 진행률 카드 -->
-    <el-card class="progress-card">
-      <template #header>
-        <div class="card-header">
-          <el-icon><TrendCharts /></el-icon>
-          <span>학습 진행률</span>
-        </div>
-      </template>
-      
-      <div class="progress-content">
-        <div class="progress-stats">
-          <div class="stat-item">
-            <span class="stat-value">{{ completedLectures }}</span>
-            <span class="stat-label">완료</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-value">{{ totalLectures }}</span>
-            <span class="stat-label">전체</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-value">{{ progressPercentage }}%</span>
-            <span class="stat-label">진행률</span>
+    <!-- 메인 콘텐츠 -->
+    <div class="main-content">
+      <!-- 사용자 정보 카드 -->
+      <el-card class="user-info-card">
+        <div class="user-info">
+          <el-avatar :size="60" :src="userAvatar">
+            <el-icon :size="30"><UserFilled /></el-icon>
+          </el-avatar>
+          <div class="user-details">
+            <h2>{{ userName }}님, 환영합니다!</h2>
+            <p>{{ userEmail }}</p>
           </div>
         </div>
-        
-        <el-progress 
-          :percentage="progressPercentage" 
-          :stroke-width="8"
-          color="#3b82f6"
-        />
-      </div>
-    </el-card>
+      </el-card>
 
-    <!-- 빠른 액션 -->
-    <div class="quick-actions">
-      <h2 class="section-title">빠른 액션</h2>
-      <div class="action-grid">
-        <div 
-          v-for="action in quickActions" 
-          :key="action.name"
-          class="action-item"
-          @click="handleAction(action)"
-        >
-          <el-icon :size="24" class="action-icon">
-            <component :is="action.icon" />
+      <!-- QR 스캔 섹션 -->
+      <el-card class="qr-scan-card">
+        <div class="qr-scan-content">
+          <el-icon :size="48" color="#409EFF">
+            <CameraFilled />
           </el-icon>
-          <span class="action-label">{{ action.label }}</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- 최근 강의 -->
-    <el-card class="recent-lectures">
-      <template #header>
-        <div class="card-header">
-          <el-icon><VideoPlay /></el-icon>
-          <span>최근 강의</span>
+          <h3>강의 QR 코드 스캔</h3>
+          <p>QR 코드를 스캔하여 안전교육을 시작하세요</p>
           <el-button 
-            type="text" 
-            @click="$router.push('/lectures')"
-            class="view-all-btn"
+            type="primary" 
+            size="large"
+            @click="handleQRScan"
+            :loading="isScanning"
           >
-            전체보기
+            <el-icon class="el-icon--left"><Scan /></el-icon>
+            QR 코드 스캔
           </el-button>
         </div>
-      </template>
-      
-      <div v-if="recentLectures.length === 0" class="empty-state">
-        <el-icon size="48" color="#ddd"><VideoPlay /></el-icon>
-        <p>아직 시청한 강의가 없습니다.</p>
-        <el-button type="primary" @click="$router.push('/lectures')">
-          강의 둘러보기
-        </el-button>
-      </div>
-      
-      <div v-else class="lecture-list">
-        <div 
-          v-for="lecture in recentLectures" 
-          :key="lecture.id"
-          class="lecture-item"
-          @click="playLecture(lecture)"
-        >
-          <div class="lecture-thumbnail">
-            <img :src="lecture.thumbnail" :alt="lecture.title" />
-            <div class="play-overlay">
-              <el-icon><VideoPlay /></el-icon>
-            </div>
-          </div>
-          
-          <div class="lecture-info">
-            <h3 class="lecture-title">{{ lecture.title }}</h3>
-            <p class="lecture-instructor">{{ lecture.instructor }}</p>
-            <div class="lecture-meta">
-              <span class="duration">{{ formatDuration(lecture.duration) }}</span>
-              <span class="progress">{{ lecture.progress }}% 완료</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </el-card>
+      </el-card>
 
-    <!-- 공지사항 -->
-    <el-card v-if="announcements.length > 0" class="announcements">
-      <template #header>
-        <div class="card-header">
-          <el-icon><Bell /></el-icon>
-          <span>공지사항</span>
-        </div>
-      </template>
-      
-      <div class="announcement-list">
-        <div 
-          v-for="announcement in announcements" 
-          :key="announcement.id"
-          class="announcement-item"
-          @click="viewAnnouncement(announcement)"
-        >
-          <div class="announcement-content">
-            <h4 class="announcement-title">{{ announcement.title }}</h4>
-            <p class="announcement-date">{{ formatDate(announcement.date) }}</p>
-          </div>
-          <el-icon class="announcement-arrow"><ArrowRight /></el-icon>
-        </div>
+      <!-- 빠른 메뉴 -->
+      <div class="quick-menu">
+        <el-row :gutter="16">
+          <el-col :span="12">
+            <el-card shadow="hover" @click="goToLectures" class="menu-card">
+              <div class="menu-item">
+                <el-icon :size="32" color="#67C23A">
+                  <VideoPlay />
+                </el-icon>
+                <span>내 강의</span>
+              </div>
+            </el-card>
+          </el-col>
+          <el-col :span="12">
+            <el-card shadow="hover" @click="goToCertificates" class="menu-card">
+              <div class="menu-item">
+                <el-icon :size="32" color="#E6A23C">
+                  <Medal />
+                </el-icon>
+                <span>수료증</span>
+              </div>
+            </el-card>
+          </el-col>
+        </el-row>
       </div>
-    </el-card>
+
+      <!-- 최근 학습 내역 -->
+      <el-card class="recent-activities">
+        <template #header>
+          <div class="card-header">
+            <span>최근 학습 내역</span>
+            <el-link type="primary" @click="goToLectures">전체보기</el-link>
+          </div>
+        </template>
+        
+        <div v-if="recentLectures.length > 0">
+          <div 
+            v-for="lecture in recentLectures" 
+            :key="lecture.id"
+            class="activity-item"
+            @click="goToLecture(lecture.id)"
+          >
+            <div class="activity-info">
+              <h4>{{ lecture.title }}</h4>
+              <p>진행률: {{ lecture.progress }}%</p>
+            </div>
+            <el-progress 
+              :percentage="lecture.progress" 
+              :stroke-width="6"
+              :color="lecture.progress === 100 ? '#67C23A' : '#409EFF'"
+            />
+          </div>
+        </div>
+        <el-empty v-else description="아직 학습한 강의가 없습니다" />
+      </el-card>
+    </div>
   </div>
 </template>
 
-<script setup lang="ts">
+<script>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
-import { useAppStore } from '@/stores/app'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { 
-  Scan, TrendCharts, VideoPlay, Bell, ArrowRight,
-  House, Medal, User, BookOpen
+  User, 
+  UserFilled, 
+  Setting, 
+  SwitchButton, 
+  CameraFilled,
+  Scan,
+  VideoPlay,
+  Medal
 } from '@element-plus/icons-vue'
+import { useAuthStore } from '@/stores/auth'
+import { useLectureStore } from '@/stores/lectures'
+import nativeBridge from '@/services/native-bridge'
 
-interface Lecture {
-  id: string
-  title: string
-  instructor: string
-  thumbnail: string
-  duration: number
-  progress: number
-}
-
-interface Announcement {
-  id: string
-  title: string
-  content: string
-  date: Date
-}
-
-// 스토어
-const authStore = useAuthStore()
-const appStore = useAppStore()
-const router = useRouter()
-
-// 반응형 데이터
-const completedLectures = ref(3)
-const totalLectures = ref(12)
-const recentLectures = ref<Lecture[]>([])
-const announcements = ref<Announcement[]>([])
-
-// 계산된 속성
-const userName = computed(() => authStore.user?.name || '사용자')
-const progressPercentage = computed(() => 
-  Math.round((completedLectures.value / totalLectures.value) * 100)
-)
-
-const quickActions = [
-  { name: 'lectures', label: '강의 목록', icon: VideoPlay },
-  { name: 'certificates', label: '수료증', icon: Medal },
-  { name: 'profile', label: '프로필', icon: User },
-  { name: 'help', label: '도움말', icon: BookOpen }
-]
-
-// 라이프사이클
-onMounted(async () => {
-  await loadDashboardData()
-})
-
-// 메서드
-const loadDashboardData = async (): Promise<void> => {
-  try {
-    appStore.setLoading(true)
+export default {
+  name: 'HomeView',
+  components: {
+    User,
+    UserFilled,
+    Setting,
+    SwitchButton,
+    CameraFilled,
+    Scan,
+    VideoPlay,
+    Medal
+  },
+  setup() {
+    const router = useRouter()
+    const authStore = useAuthStore()
+    const lectureStore = useLectureStore()
     
-    // TODO: API에서 데이터 로드
-    // const [lecturesData, announcementsData] = await Promise.all([
-    //   fetchRecentLectures(),
-    //   fetchAnnouncements()
-    // ])
+    // 상태
+    const isScanning = ref(false)
+    const recentLectures = ref([])
     
-    // 임시 데이터
-    recentLectures.value = [
-      {
-        id: '1',
-        title: '화재 안전 기초',
-        instructor: '김안전',
-        thumbnail: '/images/lecture1.jpg',
-        duration: 1800, // 30분
-        progress: 75
-      },
-      {
-        id: '2',
-        title: '응급처치 요령',
-        instructor: '박의료',
-        thumbnail: '/images/lecture2.jpg',
-        duration: 2400, // 40분
-        progress: 100
+    // 계산된 속성
+    const userName = computed(() => authStore.user?.displayName || '사용자')
+    const userEmail = computed(() => authStore.user?.email || '')
+    const userAvatar = computed(() => authStore.user?.photoURL || '')
+    
+    /**
+     * QR 코드 스캔
+     */
+    const handleQRScan = async () => {
+      try {
+        isScanning.value = true
+        
+        // 카메라 권한 확인
+        if (nativeBridge.isNativeApp()) {
+          const hasPermission = await nativeBridge.requestCameraPermission()
+          if (!hasPermission) {
+            ElMessage.warning('카메라 권한이 필요합니다.')
+            return
+          }
+        }
+        
+        // QR 스캐너 실행
+        const result = await nativeBridge.scanQR()
+        
+        if (result && result.data) {
+          // QR 데이터 처리
+          await processQRCode(result.data)
+        }
+        
+      } catch (error) {
+        console.error('QR 스캔 실패:', error)
+        
+        if (error.message?.includes('취소')) {
+          // 사용자가 취소한 경우 메시지 표시 안 함
+        } else {
+          ElMessage.error('QR 스캔에 실패했습니다.')
+        }
+      } finally {
+        isScanning.value = false
       }
-    ]
+    }
     
-    announcements.value = [
-      {
-        id: '1',
-        title: '새로운 안전교육 과정이 추가되었습니다',
-        content: '산업안전 고급과정이 새롭게 추가되었습니다.',
-        date: new Date('2024-12-19')
+    /**
+     * QR 코드 데이터 처리
+     */
+    const processQRCode = async (qrData) => {
+      try {
+        // QR 데이터 파싱
+        const data = JSON.parse(qrData)
+        
+        // QR 타입 확인
+        if (data.type === 'lecture' && data.lectureId) {
+          // 강의 정보 조회
+          const lecture = await lectureStore.getLectureById(data.lectureId)
+          
+          if (lecture) {
+            // 강의 신청/시작 확인
+            const confirmed = await ElMessageBox.confirm(
+              `"${lecture.title}" 강의를 시작하시겠습니까?`,
+              '강의 시작',
+              {
+                confirmButtonText: '시작',
+                cancelButtonText: '취소',
+                type: 'info'
+              }
+            )
+            
+            if (confirmed) {
+              // 강의 화면으로 이동
+              router.push({
+                name: 'video-player',
+                params: { id: data.lectureId }
+              })
+            }
+          } else {
+            ElMessage.error('유효하지 않은 강의 코드입니다.')
+          }
+        } else {
+          ElMessage.error('인식할 수 없는 QR 코드입니다.')
+        }
+        
+      } catch (error) {
+        console.error('QR 데이터 처리 실패:', error)
+        ElMessage.error('QR 코드 처리 중 오류가 발생했습니다.')
       }
-    ]
+    }
     
-    appStore.logEvent('dashboard_loaded', {
-      completedLectures: completedLectures.value,
-      totalLectures: totalLectures.value
+    /**
+     * 드롭다운 명령 처리
+     */
+    const handleCommand = (command) => {
+      switch (command) {
+        case 'profile':
+          router.push('/profile')
+          break
+        case 'settings':
+          router.push('/settings')
+          break
+        case 'logout':
+          handleLogout()
+          break
+      }
+    }
+    
+    /**
+     * 로그아웃
+     */
+    const handleLogout = async () => {
+      try {
+        await ElMessageBox.confirm(
+          '로그아웃하시겠습니까?',
+          '로그아웃',
+          {
+            confirmButtonText: '확인',
+            cancelButtonText: '취소',
+            type: 'warning'
+          }
+        )
+        
+        await authStore.signOut()
+        router.replace('/login')
+        ElMessage.success('로그아웃되었습니다.')
+        
+      } catch (error) {
+        // 취소한 경우
+      }
+    }
+    
+    /**
+     * 페이지 이동
+     */
+    const goToLectures = () => router.push('/lectures')
+    const goToCertificates = () => router.push('/certificates')
+    const goToLecture = (id) => router.push(`/lectures/${id}/watch`)
+    
+    /**
+     * 최근 학습 내역 로드
+     */
+    const loadRecentLectures = async () => {
+      try {
+        recentLectures.value = await lectureStore.getRecentLectures()
+      } catch (error) {
+        console.error('최근 학습 내역 로드 실패:', error)
+      }
+    }
+    
+    // 라이프사이클
+    onMounted(() => {
+      loadRecentLectures()
     })
     
-  } catch (error) {
-    console.error('대시보드 데이터 로드 실패:', error)
-    appStore.showToast('데이터를 불러오는데 실패했습니다.', 'error')
-  } finally {
-    appStore.setLoading(false)
-  }
-}
-
-const handleQRScan = (): void => {
-  if (appStore.canUseQRScanner) {
-    try {
-      window.Android?.scanQR()
-      appStore.logEvent('qr_scan_initiated')
-    } catch (error) {
-      console.error('QR 스캔 오류:', error)
-      appStore.showToast('QR 스캔을 시작할 수 없습니다.', 'error')
+    return {
+      // 상태
+      isScanning,
+      recentLectures,
+      
+      // 계산된 속성
+      userName,
+      userEmail,
+      userAvatar,
+      
+      // 메서드
+      handleQRScan,
+      handleCommand,
+      goToLectures,
+      goToCertificates,
+      goToLecture
     }
-  } else {
-    appStore.showToast('QR 스캔 기능을 사용할 수 없습니다.', 'warning')
   }
-}
-
-const handleAction = (action: any): void => {
-  appStore.logEvent('quick_action_clicked', { action: action.name })
-  
-  switch (action.name) {
-    case 'lectures':
-      router.push('/lectures')
-      break
-    case 'certificates':
-      router.push('/certificates')
-      break
-    case 'profile':
-      router.push('/profile')
-      break
-    case 'help':
-      // TODO: 도움말 페이지로 이동
-      appStore.showToast('도움말 페이지 준비 중입니다.', 'info')
-      break
-    default:
-      break
-  }
-}
-
-const playLecture = (lecture: Lecture): void => {
-  appStore.logEvent('lecture_play_from_home', { lectureId: lecture.id })
-  router.push(`/lectures/${lecture.id}/watch`)
-}
-
-const viewAnnouncement = (announcement: Announcement): void => {
-  appStore.logEvent('announcement_clicked', { announcementId: announcement.id })
-  // TODO: 공지사항 상세 페이지로 이동
-  appStore.showToast('공지사항 상세 페이지 준비 중입니다.', 'info')
-}
-
-const formatDuration = (seconds: number): string => {
-  const minutes = Math.floor(seconds / 60)
-  return `${minutes}분`
-}
-
-const formatDate = (date: Date): string => {
-  return date.toLocaleDateString('ko-KR', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  })
 }
 </script>
 
 <style scoped>
-.home-view {
-  padding: 20px;
-  max-width: 800px;
-  margin: 0 auto;
+.home-container {
+  min-height: 100vh;
+  background-color: #f5f7fa;
 }
 
 .header {
+  background: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+  padding: 16px 20px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-content {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
-.welcome-section {
-  flex: 1;
-}
-
-.welcome-title {
-  font-size: 24px;
+.page-title {
+  font-size: 20px;
   font-weight: 600;
-  color: #1f2937;
-  margin: 0 0 4px 0;
-}
-
-.welcome-subtitle {
-  font-size: 16px;
-  color: #6b7280;
+  color: #303133;
   margin: 0;
 }
 
-.qr-scan-btn {
-  flex-shrink: 0;
+.main-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
 }
 
-.progress-card {
-  margin-bottom: 24px;
+.user-info-card {
+  margin-bottom: 20px;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.user-details h2 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #303133;
+  margin: 0 0 4px 0;
+}
+
+.user-details p {
+  font-size: 14px;
+  color: #606266;
+  margin: 0;
+}
+
+.qr-scan-card {
+  margin-bottom: 20px;
+  background: linear-gradient(135deg, #409EFF 0%, #1976D2 100%);
+  color: white;
+}
+
+.qr-scan-content {
+  text-align: center;
+  padding: 20px;
+}
+
+.qr-scan-content h3 {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 16px 0 8px;
+}
+
+.qr-scan-content p {
+  font-size: 14px;
+  margin: 0 0 24px;
+  opacity: 0.9;
+}
+
+.qr-scan-content .el-button {
+  background: white;
+  color: #409EFF;
+  border: none;
+  font-weight: 600;
+}
+
+.qr-scan-content .el-button:hover {
+  background: #f5f5f5;
+}
+
+.quick-menu {
+  margin-bottom: 20px;
+}
+
+.menu-card {
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.menu-card:hover {
+  transform: translateY(-2px);
+}
+
+.menu-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px;
+}
+
+.menu-item span {
+  font-size: 14px;
+  font-weight: 600;
+  color: #303133;
+}
+
+.recent-activities {
+  margin-bottom: 20px;
 }
 
 .card-header {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 8px;
-  font-weight: 600;
 }
 
-.progress-content {
-  space-y: 16px;
-}
-
-.progress-stats {
-  display: flex;
-  justify-content: space-around;
-  margin-bottom: 16px;
-}
-
-.stat-item {
-  text-align: center;
-}
-
-.stat-value {
-  display: block;
-  font-size: 24px;
-  font-weight: 700;
-  color: #3b82f6;
-}
-
-.stat-label {
-  display: block;
-  font-size: 14px;
-  color: #6b7280;
-  margin-top: 4px;
-}
-
-.quick-actions {
-  margin-bottom: 24px;
-}
-
-.section-title {
-  font-size: 18px;
-  font-weight: 600;
-  color: #1f2937;
-  margin: 0 0 16px 0;
-}
-
-.action-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-}
-
-.action-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 16px;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+.activity-item {
+  padding: 16px 0;
+  border-bottom: 1px solid #ebeef5;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background 0.2s;
 }
 
-.action-item:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+.activity-item:hover {
+  background: #f5f7fa;
+  margin: 0 -20px;
+  padding: 16px 20px;
 }
 
-.action-icon {
-  color: #3b82f6;
+.activity-item:last-child {
+  border-bottom: none;
+}
+
+.activity-info {
   margin-bottom: 8px;
 }
 
-.action-label {
-  font-size: 12px;
-  color: #374151;
-  text-align: center;
-}
-
-.recent-lectures {
-  margin-bottom: 24px;
-}
-
-.view-all-btn {
-  margin-left: auto;
-  color: #3b82f6;
-}
-
-.empty-state {
-  text-align: center;
-  padding: 40px 20px;
-  color: #6b7280;
-}
-
-.lecture-list {
-  space-y: 16px;
-}
-
-.lecture-item {
-  display: flex;
-  gap: 16px;
-  padding: 16px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.lecture-item:hover {
-  background-color: #f9fafb;
-}
-
-.lecture-thumbnail {
-  position: relative;
-  width: 80px;
-  height: 60px;
-  border-radius: 6px;
-  overflow: hidden;
-  flex-shrink: 0;
-}
-
-.lecture-thumbnail img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.play-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-}
-
-.lecture-info {
-  flex: 1;
-}
-
-.lecture-title {
+.activity-info h4 {
   font-size: 16px;
-  font-weight: 600;
-  color: #1f2937;
-  margin: 0 0 4px 0;
-}
-
-.lecture-instructor {
-  font-size: 14px;
-  color: #6b7280;
-  margin: 0 0 8px 0;
-}
-
-.lecture-meta {
-  display: flex;
-  gap: 12px;
-  font-size: 12px;
-  color: #9ca3af;
-}
-
-.announcements {
-  margin-bottom: 24px;
-}
-
-.announcement-list {
-  space-y: 12px;
-}
-
-.announcement-item {
-  display: flex;
-  align-items: center;
-  padding: 12px;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.announcement-item:hover {
-  background-color: #f9fafb;
-}
-
-.announcement-content {
-  flex: 1;
-}
-
-.announcement-title {
-  font-size: 14px;
   font-weight: 500;
-  color: #1f2937;
+  color: #303133;
   margin: 0 0 4px 0;
 }
 
-.announcement-date {
+.activity-info p {
   font-size: 12px;
-  color: #6b7280;
+  color: #909399;
   margin: 0;
 }
 
-.announcement-arrow {
-  color: #9ca3af;
-}
-
-/* 모바일 반응형 */
+/* 반응형 디자인 */
 @media (max-width: 768px) {
-  .home-view {
+  .main-content {
     padding: 16px;
   }
   
-  .header {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 16px;
-  }
-  
-  .action-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  
-  .lecture-item {
-    padding: 12px;
-  }
-  
-  .lecture-thumbnail {
-    width: 60px;
-    height: 45px;
+  .quick-menu .el-col {
+    margin-bottom: 16px;
   }
 }
 </style>
