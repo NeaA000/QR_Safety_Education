@@ -81,9 +81,7 @@
               class="social-button google-button"
             >
               <template #icon>
-                <el-icon v-if="!isSocialLoading.google">
-                  <ChromeFilled />
-                </el-icon>
+                <img src="/icons/google.svg" alt="Google" class="social-icon" v-if="!isSocialLoading.google">
               </template>
               Google로 로그인
             </el-button>
@@ -95,9 +93,7 @@
               class="social-button naver-button"
             >
               <template #icon>
-                <el-icon v-if="!isSocialLoading.naver">
-                  <Platform />
-                </el-icon>
+                <img src="/icons/naver.svg" alt="Naver" class="social-icon" v-if="!isSocialLoading.naver">
               </template>
               네이버로 로그인
             </el-button>
@@ -117,16 +113,15 @@
       <div class="qr-login-section">
         <el-card class="qr-card" shadow="hover">
           <div class="qr-content">
-            <el-icon size="32" color="#1976d2">
-              <Scan />
-            </el-icon>
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="#1976d2">
+              <path d="M3 3h18v18H3V3zm16 16V5H5v14h14zM7 7h2v2H7V7zm0 4h2v2H7v-2zm0 4h2v2H7v-2zm4-8h2v2h-2V7zm0 4h2v2h-2v-2zm0 4h2v2h-2v-2zm4-8h2v2h-2V7zm0 4h2v2h-2v-2zm0 4h2v2h-2v-2z"/>
+            </svg>
             <div class="qr-text">
               <h3>QR 코드로 빠른 로그인</h3>
               <p>QR 코드를 스캔하여 간편하게 로그인하세요</p>
             </div>
             <el-button
               type="primary"
-              :icon="Scan"
               :loading="isQRLoading"
               @click="handleQRLogin"
               class="qr-button"
@@ -175,7 +170,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { Shield, Message, Lock, Scan, ChromeFilled, Platform } from '@element-plus/icons-vue'
+import { Shield, Message, Lock, Scan } from '@element-plus/icons-vue'
 import { useAuthStore } from '@/stores/auth'
 import nativeBridge from '@/services/native-bridge'
 import { logAnalyticsEvent } from '@/services/firebase'
@@ -186,9 +181,7 @@ export default {
     Shield,
     Message,
     Lock,
-    Scan,
-    ChromeFilled,
-    Platform
+    Scan
   },
   setup() {
     const router = useRouter()
@@ -648,6 +641,12 @@ export default {
 .naver-button:hover {
   background: #02b151;
   border-color: #02b151;
+}
+
+.social-icon {
+  width: 20px;
+  height: 20px;
+  margin-right: 8px;
 }
 
 .register-section {
