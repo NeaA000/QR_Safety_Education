@@ -1,9 +1,9 @@
-﻿@tailwind base;
+﻿/* src/assets/styles/main.css */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* 기본 글꼴 및 스타일 */
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap');
 
 html {
   font-family: 'Noto Sans KR', system-ui, sans-serif;
