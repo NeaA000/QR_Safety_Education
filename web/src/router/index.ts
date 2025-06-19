@@ -5,7 +5,7 @@ import { useAuthStore } from '@/stores/auth'
 // 라우트 정의
 const routes: RouteRecordRaw[] = [
   {
-    path: '/',
+    path: '/home',
     name: 'home',
     component: () => import('@/views/HomeView.vue'),
     meta: { requiresAuth: true }
