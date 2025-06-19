@@ -1,4 +1,3 @@
-// src/router/index.ts
 import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
@@ -147,8 +146,21 @@ router.beforeEach(async (to, from, next) => {
   const requiresAdmin = to.matched.some(record => record.meta.requiresAdmin)
   const guestOnly = to.matched.some(record => record.meta.guest)
 
+  // 디버깅용 로그 추가
+  console.log('[라우터가드]', {
+    to: to.fullPath,
+    from: from.fullPath,
+    isAuthenticated: isAuthenticated,
+    requiresAuth,
+    requiresAdmin,
+    guestOnly,
+    user: authStore.user,
+    token: authStore.token
+  })
+
   // 인증이 필요한 페이지
   if (requiresAuth && !isAuthenticated) {
+    console.log('[라우터가드] 인증 필요 → 로그인 페이지로 이동')
     next({
       name: 'login',
       query: { redirect: to.fullPath }
@@ -158,12 +170,14 @@ router.beforeEach(async (to, from, next) => {
 
   // 관리자 권한이 필요한 페이지
   if (requiresAdmin && !authStore.isAdmin) {
+    console.log('[라우터가드] 관리자 권한 필요 → 홈으로 이동')
     next({ name: 'home' })
     return
   }
 
   // 게스트만 접근 가능한 페이지 (로그인, 회원가입)
   if (guestOnly && isAuthenticated) {
+    console.log('[라우터가드] 이미 로그인됨 → 홈으로 이동')
     next({ name: 'home' })
     return
   }
