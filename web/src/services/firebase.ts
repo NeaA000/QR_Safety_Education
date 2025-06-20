@@ -2,7 +2,6 @@
 import { initializeApp, FirebaseApp } from 'firebase/app'
 import {
   getAuth,
-  Auth,
   connectAuthEmulator,
   setPersistence,
   browserLocalPersistence
@@ -17,6 +16,9 @@ import {
 import { getStorage, FirebaseStorage } from 'firebase/storage'
 import { getFunctions, connectFunctionsEmulator } from 'firebase/functions'
 
+// Firebase Auth 타입 정의
+export type FirebaseAuth = ReturnType<typeof getAuth>
+
 // Firebase 설정 (환경변수에서 가져오기)
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -30,7 +32,7 @@ const firebaseConfig = {
 
 // Firebase 서비스 인스턴스
 let app: FirebaseApp
-let auth: Auth
+let auth: FirebaseAuth
 let db: Firestore
 let storage: FirebaseStorage
 let functions: any
@@ -52,6 +54,11 @@ export const initializeFirebase = async (): Promise<boolean> => {
     try {
       console.log('🔥 Firebase 초기화 시작...')
 
+      // 환경변수 검증
+      if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
+        throw new Error('Firebase 환경변수가 설정되지 않았습니다. .env 파일을 확인하세요.')
+      }
+
       // Firebase 앱 초기화
       app = initializeApp(firebaseConfig)
 
@@ -68,7 +75,7 @@ export const initializeFirebase = async (): Promise<boolean> => {
       storage = getStorage(app)
 
       // Functions 초기화
-      functions = getFunctions(app)
+      functions = getFunctions(app, 'asia-northeast3') // 서울 리전
 
       // 🚀 개발 환경에서 에뮬레이터 연결
       if (import.meta.env.DEV && import.meta.env.VITE_USE_FIREBASE_EMULATOR === 'true') {
@@ -116,7 +123,7 @@ export const initializeFirebase = async (): Promise<boolean> => {
           auth = getAuth(app)
           db = getFirestore(app)
           storage = getStorage(app)
-          functions = getFunctions(app)
+          functions = getFunctions(app, 'asia-northeast3')
 
           isInitialized = true
           console.log('✅ Firebase 재시도 성공')
@@ -146,7 +153,7 @@ export const getFirebaseApp = (): FirebaseApp => {
 /**
  * Firebase Auth 인스턴스 반환
  */
-export const getFirebaseAuth = (): Auth => {
+export const getFirebaseAuth = (): FirebaseAuth => {
   if (!auth) {
     throw new Error('Firebase Auth가 초기화되지 않았습니다.')
   }
@@ -215,5 +222,26 @@ export const goOnline = async (): Promise<void> => {
   }
 }
 
-// 기본 export들
+// Firebase 서비스들을 객체로 묶어서 기본 export
+const Firebase = {
+  app,
+  auth,
+  db,
+  storage,
+  functions,
+  initializeFirebase,
+  getFirebaseApp,
+  getFirebaseAuth,
+  getFirebaseFirestore,
+  getFirebaseStorage,
+  getFirebaseFunctions,
+  checkNetworkStatus,
+  goOffline,
+  goOnline
+}
+
+// 기본 export (문제 해결을 위해 추가)
+export default Firebase
+
+// 명명된 export들 (기존 코드 호환성)
 export { app, auth, db, storage, functions }

@@ -1,6 +1,6 @@
 // web/src/stores/auth.ts
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref, computed, readonly } from 'vue'
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
@@ -51,6 +51,11 @@ export interface RegisterData {
   dob: Date
 }
 
+export interface LoginData {
+  email: string
+  password: string
+}
+
 export const useAuthStore = defineStore('auth', () => {
   // 상태 변수들
   const user = ref<User | null>(null)
@@ -71,53 +76,59 @@ export const useAuthStore = defineStore('auth', () => {
     return '익명 사용자'
   })
 
-  // 🔐 입력값 검증 함수
-  const validateRegisterData = (data: RegisterData): string | null => {
-    const { email, password, name, phone, dob } = data
-
-    // 이메일 검증
+  // 🔐 입력값 검증 함수들
+  const validateEmail = (email: string): string | null => {
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
-    if (!emailRegex.test(email)) {
-      return '올바른 이메일 형식을 입력해주세요.'
-    }
+    if (!email.trim()) return '이메일을 입력해주세요.'
+    if (!emailRegex.test(email.trim())) return '올바른 이메일 형식을 입력해주세요.'
+    return null
+  }
 
-    // 비밀번호 강도 검증
-    if (password.length < 8) {
-      return '비밀번호는 8자 이상이어야 합니다.'
-    }
+  const validatePassword = (password: string): string | null => {
+    if (!password) return '비밀번호를 입력해주세요.'
+    if (password.length < 8) return '비밀번호는 8자 이상이어야 합니다.'
     if (!/^(?=.*[a-zA-Z])(?=.*\d)/.test(password)) {
       return '비밀번호는 영문과 숫자를 모두 포함해야 합니다.'
     }
+    return null
+  }
 
-    // 이름 검증
-    if (name.trim().length < 2) {
-      return '이름은 2자 이상이어야 합니다.'
-    }
-    if (name.trim().length > 50) {
-      return '이름은 50자를 초과할 수 없습니다.'
-    }
+  const validateName = (name: string): string | null => {
+    if (!name.trim()) return '이름을 입력해주세요.'
+    if (name.trim().length < 2) return '이름은 2자 이상이어야 합니다.'
+    if (name.trim().length > 50) return '이름은 50자를 초과할 수 없습니다.'
+    return null
+  }
 
-    // 전화번호 검증
+  const validatePhone = (phone: string): string | null => {
     if (phone && !/^[0-9-+().\s]{10,15}$/.test(phone)) {
       return '올바른 전화번호 형식을 입력해주세요.'
     }
+    return null
+  }
 
-    // 생년월일 검증
+  const validateDob = (dob: Date): string | null => {
     const now = new Date()
-    if (dob > now) {
-      return '생년월일은 현재 날짜보다 과거여야 합니다.'
-    }
-    if (dob < new Date('1900-01-01')) {
-      return '올바른 생년월일을 입력해주세요.'
-    }
+    if (dob > now) return '생년월일은 현재 날짜보다 과거여야 합니다.'
+    if (dob < new Date('1900-01-01')) return '올바른 생년월일을 입력해주세요.'
 
     // 13세 미만 방지
     const age = (now.getTime() - dob.getTime()) / (365.25 * 24 * 60 * 60 * 1000)
-    if (age < 13) {
-      return '13세 이상만 가입할 수 있습니다.'
-    }
+    if (age < 13) return '13세 이상만 가입할 수 있습니다.'
 
     return null
+  }
+
+  const validateRegisterData = (data: RegisterData): string | null => {
+    return validateEmail(data.email) ||
+      validatePassword(data.password) ||
+      validateName(data.name) ||
+      validatePhone(data.phone) ||
+      validateDob(data.dob)
+  }
+
+  const validateLoginData = (data: LoginData): string | null => {
+    return validateEmail(data.email) || validatePassword(data.password)
   }
 
   // 🔐 Firestore에 사용자 정보 저장
@@ -134,8 +145,9 @@ export const useAuthStore = defineStore('auth', () => {
       }
 
       await setDoc(userRef, dataToSave, { merge: true })
+      console.log('✅ 사용자 정보 Firestore 저장 완료:', uid)
     } catch (error) {
-      console.error('사용자 정보 저장 실패:', error)
+      console.error('❌ 사용자 정보 저장 실패:', error)
       throw new Error('사용자 정보 저장에 실패했습니다.')
     }
   }
@@ -168,19 +180,31 @@ export const useAuthStore = defineStore('auth', () => {
 
       return null
     } catch (error) {
-      console.error('사용자 프로필 로드 실패:', error)
+      console.error('❌ 사용자 프로필 로드 실패:', error)
       return null
     }
   }
 
   // ✅ 이메일 로그인
-  const loginWithEmail = async (email: string, password: string): Promise<void> => {
+  const loginWithEmail = async (data: LoginData): Promise<void> => {
     try {
       isLoading.value = true
       error.value = null
 
+      // 입력값 검증
+      const validationError = validateLoginData(data)
+      if (validationError) {
+        error.value = validationError
+        ElMessage.error(validationError)
+        throw new Error(validationError)
+      }
+
       const auth = getFirebaseAuth()
-      const credential = await signInWithEmailAndPassword(auth, email.trim(), password)
+      const credential = await signInWithEmailAndPassword(
+        auth,
+        data.email.trim(),
+        data.password
+      )
 
       if (credential.user) {
         // 로그인 시간 업데이트
@@ -189,24 +213,31 @@ export const useAuthStore = defineStore('auth', () => {
         })
 
         ElMessage.success('로그인에 성공했습니다.')
+        console.log('✅ 이메일 로그인 성공:', credential.user.uid)
       }
     } catch (err: any) {
-      console.error('이메일 로그인 실패:', err)
+      console.error('❌ 이메일 로그인 실패:', err)
 
       let errorMessage = '로그인에 실패했습니다.'
       switch (err.code) {
-        case AuthErrorCodes.USER_DELETED:
         case AuthErrorCodes.INVALID_EMAIL:
+          errorMessage = '유효하지 않은 이메일 형식입니다.'
+          break
+        case AuthErrorCodes.USER_DELETED:
           errorMessage = '존재하지 않는 계정입니다.'
           break
-        case AuthErrorCodes.WRONG_PASSWORD:
-          errorMessage = '잘못된 비밀번호입니다.'
+        case AuthErrorCodes.INVALID_LOGIN_CREDENTIALS:
+        case AuthErrorCodes.INVALID_PASSWORD:
+          errorMessage = '이메일 또는 비밀번호가 올바르지 않습니다.'
           break
         case AuthErrorCodes.TOO_MANY_ATTEMPTS_TRY_LATER:
           errorMessage = '로그인 시도가 너무 많습니다. 잠시 후 다시 시도해주세요.'
           break
         case AuthErrorCodes.NETWORK_REQUEST_FAILED:
           errorMessage = '네트워크 연결을 확인해주세요.'
+          break
+        case AuthErrorCodes.USER_DISABLED:
+          errorMessage = '비활성화된 계정입니다. 관리자에게 문의하세요.'
           break
         default:
           errorMessage = err.message || '로그인 중 오류가 발생했습니다.'
@@ -220,7 +251,7 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  // ✅ 회원가입
+  // ✅ 이메일 회원가입
   const registerWithEmail = async (data: RegisterData): Promise<void> => {
     try {
       isLoading.value = true
@@ -235,12 +266,6 @@ export const useAuthStore = defineStore('auth', () => {
       }
 
       const auth = getFirebaseAuth()
-
-      // 기존 익명 사용자가 있다면 로그아웃
-      if (auth.currentUser?.isAnonymous) {
-        await signOut(auth)
-      }
-
       const credential = await createUserWithEmailAndPassword(
         auth,
         data.email.trim(),
@@ -248,8 +273,8 @@ export const useAuthStore = defineStore('auth', () => {
       )
 
       if (credential.user) {
-        // 🔐 사용자 프로필 정보 저장
-        const userProfileData: Partial<UserProfile> = {
+        // 🔐 사용자 정보 저장
+        await saveUserToFirestore(credential.user.uid, {
           email: data.email.trim(),
           name: data.name.trim(),
           phone: data.phone.trim(),
@@ -261,19 +286,18 @@ export const useAuthStore = defineStore('auth', () => {
           privacyConsent: true,
           privacyConsentDate: new Date(),
           accessLevel: 'standard'
-        }
-
-        await saveUserToFirestore(credential.user.uid, userProfileData)
+        })
 
         // Firebase Auth 프로필 업데이트
         await updateProfile(credential.user, {
           displayName: data.name.trim()
         })
 
-        ElMessage.success('회원가입이 완료되었습니다.')
+        ElMessage.success('회원가입이 완료되었습니다!')
+        console.log('✅ 회원가입 성공:', credential.user.uid)
       }
     } catch (err: any) {
-      console.error('회원가입 실패:', err)
+      console.error('❌ 회원가입 실패:', err)
 
       let errorMessage = '회원가입에 실패했습니다.'
       switch (err.code) {
@@ -328,9 +352,10 @@ export const useAuthStore = defineStore('auth', () => {
         })
 
         ElMessage.success('게스트로 로그인했습니다.')
+        console.log('✅ 게스트 로그인 성공:', credential.user.uid)
       }
     } catch (err: any) {
-      console.error('게스트 로그인 실패:', err)
+      console.error('❌ 게스트 로그인 실패:', err)
       const errorMessage = '게스트 로그인에 실패했습니다.'
       error.value = errorMessage
       ElMessage.error(errorMessage)
@@ -391,9 +416,10 @@ export const useAuthStore = defineStore('auth', () => {
         })
 
         ElMessage.success('회원가입이 완료되었습니다!')
+        console.log('✅ 게스트 승격 성공:', credential.user.uid)
       }
     } catch (err: any) {
-      console.error('게스트 승격 실패:', err)
+      console.error('❌ 게스트 승격 실패:', err)
       const errorMessage = err.message || '회원가입 승격에 실패했습니다.'
       error.value = errorMessage
       ElMessage.error(errorMessage)
@@ -409,12 +435,20 @@ export const useAuthStore = defineStore('auth', () => {
       isLoading.value = true
       error.value = null
 
+      const emailError = validateEmail(email)
+      if (emailError) {
+        error.value = emailError
+        ElMessage.error(emailError)
+        throw new Error(emailError)
+      }
+
       const auth = getFirebaseAuth()
       await sendPasswordResetEmail(auth, email.trim())
 
       ElMessage.success('비밀번호 재설정 이메일을 발송했습니다.')
+      console.log('✅ 비밀번호 재설정 이메일 발송:', email)
     } catch (err: any) {
-      console.error('비밀번호 재설정 실패:', err)
+      console.error('❌ 비밀번호 재설정 실패:', err)
 
       let errorMessage = '비밀번호 재설정에 실패했습니다.'
       switch (err.code) {
@@ -440,29 +474,19 @@ export const useAuthStore = defineStore('auth', () => {
   const logout = async (): Promise<void> => {
     try {
       isLoading.value = true
+      error.value = null
 
       const auth = getFirebaseAuth()
-
-      // 게스트 사용자의 경우 Firestore 데이터도 삭제
-      if (user.value?.isAnonymous && userProfile.value?.isTemporary) {
-        try {
-          const db = getFirebaseFirestore()
-          await deleteDoc(doc(db, 'users', user.value.uid))
-        } catch (deleteError) {
-          console.warn('게스트 데이터 삭제 실패 (무시):', deleteError)
-        }
-      }
-
       await signOut(auth)
 
       // 상태 초기화
       user.value = null
       userProfile.value = null
-      error.value = null
 
       ElMessage.success('로그아웃되었습니다.')
+      console.log('✅ 로그아웃 성공')
     } catch (err: any) {
-      console.error('로그아웃 실패:', err)
+      console.error('❌ 로그아웃 실패:', err)
       ElMessage.error('로그아웃에 실패했습니다.')
     } finally {
       isLoading.value = false
@@ -495,7 +519,7 @@ export const useAuthStore = defineStore('auth', () => {
               console.log('🔐 사용자 로그아웃됨')
             }
           } catch (profileError) {
-            console.error('사용자 프로필 로드 실패:', profileError)
+            console.error('❌ 사용자 프로필 로드 실패:', profileError)
             userProfile.value = null
           } finally {
             isInitialized.value = true
@@ -505,8 +529,36 @@ export const useAuthStore = defineStore('auth', () => {
         })
       })
     } catch (error) {
-      console.error('인증 초기화 실패:', error)
+      console.error('❌ 인증 초기화 실패:', error)
       isInitialized.value = true
+    }
+  }
+
+  // 사용자 프로필 업데이트
+  const updateUserProfile = async (updates: Partial<UserProfile>): Promise<void> => {
+    try {
+      if (!user.value) throw new Error('로그인된 사용자가 없습니다.')
+
+      isLoading.value = true
+      error.value = null
+
+      // Firestore 업데이트
+      await saveUserToFirestore(user.value.uid, updates)
+
+      // 로컬 상태 업데이트
+      if (userProfile.value) {
+        userProfile.value = { ...userProfile.value, ...updates }
+      }
+
+      ElMessage.success('프로필이 업데이트되었습니다.')
+    } catch (err: any) {
+      console.error('❌ 프로필 업데이트 실패:', err)
+      const errorMessage = err.message || '프로필 업데이트에 실패했습니다.'
+      error.value = errorMessage
+      ElMessage.error(errorMessage)
+      throw new Error(errorMessage)
+    } finally {
+      isLoading.value = false
     }
   }
 
@@ -533,6 +585,7 @@ export const useAuthStore = defineStore('auth', () => {
     upgradeGuestToUser,
     resetPassword,
     logout,
-    initializeAuth
+    initializeAuth,
+    updateUserProfile
   }
 })
