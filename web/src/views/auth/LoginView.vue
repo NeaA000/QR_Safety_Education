@@ -136,7 +136,7 @@ const handleForgotPassword = () => {
 }
 
 const goRegister = () => {
-  ElMessage.info('회원가입은 관리자에게 문의해주세요.')
+  router.push('/register')
 }
 </script>
 

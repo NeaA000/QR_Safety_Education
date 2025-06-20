@@ -5,6 +5,8 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signInAnonymously,
+  signInWithPopup,
+  GoogleAuthProvider,
   signOut,
   onAuthStateChanged,
   updateProfile,
@@ -195,8 +197,8 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  // ✅ 이메일 로그인
-  const loginWithEmail = async (data: LoginData): Promise<void> => {
+  // ✅ 이메일 로그인 (LoginView.vue에서 호출하는 메서드명과 일치)
+  const login = async (data: LoginData): Promise<boolean> => {
     try {
       isLoading.value = true
       error.value = null
@@ -206,7 +208,7 @@ export const useAuthStore = defineStore('auth', () => {
       if (validationError) {
         error.value = validationError
         ElMessage.error(validationError)
-        throw new Error(validationError)
+        return false
       }
 
       const auth = getFirebaseAuth()
@@ -222,9 +224,11 @@ export const useAuthStore = defineStore('auth', () => {
           lastLoginAt: new Date()
         })
 
-        ElMessage.success('로그인에 성공했습니다.')
         console.log('✅ 이메일 로그인 성공:', credential.user.uid)
+        return true
       }
+
+      return false
     } catch (err: any) {
       console.error('❌ 이메일 로그인 실패:', err)
 
@@ -256,8 +260,87 @@ export const useAuthStore = defineStore('auth', () => {
       }
 
       error.value = errorMessage
-      ElMessage.error(errorMessage)
-      throw new Error(errorMessage)
+      return false
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  // ✅ 이메일 로그인 (별칭 메서드)
+  const loginWithEmail = async (data: LoginData): Promise<void> => {
+    const success = await login(data)
+    if (!success) {
+      throw new Error(error.value || '로그인에 실패했습니다.')
+    }
+  }
+
+  // ✅ Google 로그인 (LoginView.vue에서 호출하는 메서드)
+  const signInWithGoogle = async (): Promise<boolean> => {
+    try {
+      isLoading.value = true
+      error.value = null
+
+      const auth = getFirebaseAuth()
+      const provider = new GoogleAuthProvider()
+
+      // Google 로그인 설정
+      provider.addScope('email')
+      provider.addScope('profile')
+      provider.setCustomParameters({
+        prompt: 'select_account'
+      })
+
+      const result = await signInWithPopup(auth, provider)
+
+      if (result.user) {
+        // 사용자 정보 저장/업데이트
+        const userProfile: Partial<UserProfile> = {
+          email: result.user.email || undefined,
+          name: result.user.displayName || '구글 사용자',
+          role: 'user',
+          provider: 'google',
+          lastLoginAt: new Date(),
+          privacyConsent: true,
+          privacyConsentDate: new Date(),
+          accessLevel: 'standard'
+        }
+
+        // 기존 사용자인지 확인
+        const existingProfile = await loadUserProfile(result.user.uid)
+        if (!existingProfile) {
+          userProfile.joinedAt = new Date()
+        }
+
+        await saveUserToFirestore(result.user.uid, userProfile)
+
+        console.log('✅ Google 로그인 성공:', result.user.uid)
+        return true
+      }
+
+      return false
+    } catch (err: any) {
+      console.error('❌ Google 로그인 실패:', err)
+
+      let errorMessage = 'Google 로그인에 실패했습니다.'
+      switch (err.code) {
+        case 'auth/popup-closed-by-user':
+          errorMessage = '로그인이 취소되었습니다.'
+          break
+        case 'auth/popup-blocked':
+          errorMessage = '팝업이 차단되었습니다. 팝업 차단을 해제해주세요.'
+          break
+        case 'auth/account-exists-with-different-credential':
+          errorMessage = '이미 다른 방법으로 가입된 이메일입니다.'
+          break
+        case 'auth/network-request-failed':
+          errorMessage = '네트워크 연결을 확인해주세요.'
+          break
+        default:
+          errorMessage = err.message || 'Google 로그인 중 오류가 발생했습니다.'
+      }
+
+      error.value = errorMessage
+      return false
     } finally {
       isLoading.value = false
     }
@@ -591,8 +674,10 @@ export const useAuthStore = defineStore('auth', () => {
     currentRole,
     displayName,
 
-    // 액션
-    loginWithEmail,
+    // 액션 (LoginView.vue에서 사용하는 메서드명들 포함)
+    login, // LoginView.vue에서 호출
+    loginWithEmail, // 기존 메서드
+    signInWithGoogle, // LoginView.vue에서 호출
     registerWithEmail,
     loginAsGuest,
     upgradeGuestToUser,

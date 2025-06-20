@@ -5,7 +5,7 @@
       <div class="header-content">
         <div class="logo-section">
           <el-icon :size="32" color="#409EFF">
-            <Shield />
+            <Lock />
           </el-icon>
           <h1 class="app-title">QR 안전교육</h1>
         </div>
@@ -149,7 +149,7 @@
               class="activity-item"
             >
               <el-icon :size="20" :color="activity.iconColor">
-                <component :is="activity.icon" />
+                <component :is="getActivityIcon(activity.icon)" />
               </el-icon>
               <div class="activity-content">
                 <span class="activity-title">{{ activity.title }}</span>
@@ -233,7 +233,7 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
-  Shield,
+  Lock,
   User,
   UserFilled,
   Setting,
@@ -288,6 +288,20 @@ const userStats = reactive({
   certificates: 2,
   totalHours: 24
 })
+
+// 활동 아이콘 매핑 함수
+const getActivityIcon = (iconName: string) => {
+  const iconMap: Record<string, any> = {
+    Trophy,
+    Document,
+    Collection,
+    Calendar,
+    Clock,
+    Medal,
+    Lock
+  }
+  return iconMap[iconName] || Document
+}
 
 // 사용자 액션 처리
 const handleUserAction = async (command: string) => {
@@ -436,6 +450,10 @@ onMounted(() => {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border: none;
   color: white;
+}
+
+:deep(.welcome-card .el-card__body) {
+  padding: 0;
 }
 
 .welcome-content {

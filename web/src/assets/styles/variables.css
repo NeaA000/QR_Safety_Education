@@ -1,12 +1,12 @@
 /* web/src/assets/styles/variables.css */
 
 :root {
-  /* === 컬러 시스템 === */
-  /* 브랜드 컬러 */
-  --color-primary: #409EFF;
-  --color-primary-light: #79bbff;
-  --color-primary-dark: #337ecc;
-  --color-primary-rgb: 64, 158, 255;
+  /* === 컬러 시스템 (녹색 테마) === */
+  /* 브랜드 컬러 - 녹색 계열로 변경 */
+  --color-primary: #67C23A;
+  --color-primary-light: #85CE61;
+  --color-primary-dark: #529B2E;
+  --color-primary-rgb: 103, 194, 58;
 
   /* 시맨틱 컬러 */
   --color-success: #67C23A;
@@ -24,6 +24,12 @@
   --color-info: #909399;
   --color-info-light: #b1b3b8;
   --color-info-dark: #73767a;
+
+  /* 교육 테마 전용 녹색 계열 */
+  --color-education-primary: #67C23A;    /* 메인 녹색 */
+  --color-education-secondary: #85CE61;  /* 밝은 녹색 */
+  --color-education-accent: #409EFF;     /* 포인트 파란색 */
+  --color-education-dark: #529B2E;       /* 진한 녹색 */
 
   /* 그레이스케일 */
   --white: #FFFFFF;
@@ -47,10 +53,11 @@
   --text-color-placeholder: #C0C4CC;
   --text-color-disabled: #C0C4CC;
 
-  /* 배경 컬러 */
-  --bg-color-base: #F2F6FC;
+  /* 배경 컬러 - 녹색 톤으로 조정 */
+  --bg-color-base: #F0F9FF;
   --bg-color-page: #FFFFFF;
   --bg-color-overlay: rgba(0, 0, 0, 0.8);
+  --bg-color-education: #F7FDF4;  /* 연한 녹색 배경 */
 
   /* 테두리 컬러 */
   --border-color-base: #DCDFE6;
@@ -152,6 +159,10 @@
   --box-shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.1), 0 10px 10px rgba(0, 0, 0, 0.04);
   --box-shadow-2xl: 0 25px 50px rgba(0, 0, 0, 0.25);
 
+  /* 녹색 테마 전용 그림자 */
+  --box-shadow-green: 0 4px 14px 0 rgba(103, 194, 58, 0.2);
+  --box-shadow-green-lg: 0 8px 30px rgba(103, 194, 58, 0.3);
+
   /* === 전환 및 애니메이션 === */
   /* 지속 시간 */
   --transition-duration-fast: 0.15s;
@@ -189,8 +200,8 @@
 
   /* 카드 */
   --card-padding: var(--spacing-6);
-  --card-border-radius: var(--border-radius-lg);
-  --card-shadow: var(--box-shadow-sm);
+  --card-border-radius: var(--border-radius-xl);
+  --card-shadow: var(--box-shadow-base);
 
   /* 헤더 */
   --header-height: 64px;
@@ -234,6 +245,11 @@
   --safety-red: #F44336;
   --safety-orange: #FF9800;
 
+  /* 교육 테마 그라데이션 */
+  --gradient-education-primary: linear-gradient(135deg, #67C23A 0%, #85CE61 100%);
+  --gradient-education-secondary: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  --gradient-education-accent: linear-gradient(135deg, #529B2E 0%, #67C23A 100%);
+
   /* 모바일 최적화 */
   --mobile-header-height: 56px;
   --mobile-bottom-navigation-height: 60px;
@@ -243,6 +259,11 @@
 /* 다크 모드 변수 */
 @media (prefers-color-scheme: dark) {
   :root {
+    /* 녹색 테마 다크 모드 */
+    --color-primary: #85CE61;
+    --color-primary-light: #95d475;
+    --color-primary-dark: #67C23A;
+
     /* 텍스트 컬러 (다크 모드) */
     --text-color-primary: #E5EAF3;
     --text-color-regular: #CFD3DC;
@@ -254,6 +275,7 @@
     --bg-color-base: #0D1117;
     --bg-color-page: #161B22;
     --bg-color-overlay: rgba(0, 0, 0, 0.9);
+    --bg-color-education: #0F1419;
 
     /* 테두리 컬러 (다크 모드) */
     --border-color-base: #30363D;
@@ -279,14 +301,18 @@
     --header-background: #161B22;
     --sidebar-background: #0D1117;
     --certificate-background: #21262D;
+
+    /* 다크 모드 그라데이션 */
+    --gradient-education-primary: linear-gradient(135deg, #529B2E 0%, #67C23A 100%);
+    --gradient-education-secondary: linear-gradient(135deg, #0D1117 0%, #161B22 100%);
   }
 }
 
 /* 고대비 모드 */
 @media (prefers-contrast: high) {
   :root {
-    --color-primary: #0066CC;
-    --color-success: #008800;
+    --color-primary: #4A7C59;
+    --color-success: #2E7D32;
     --color-warning: #CC6600;
     --color-danger: #CC0000;
     --color-info: #666666;
