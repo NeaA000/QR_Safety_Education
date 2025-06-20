@@ -1,23 +1,24 @@
 // web/src/services/firebase.ts
-import { initializeApp, FirebaseApp } from 'firebase/app'
+import { initializeApp, type FirebaseApp } from 'firebase/app'
 import {
   getAuth,
   connectAuthEmulator,
   setPersistence,
-  browserLocalPersistence
+  browserLocalPersistence,
+  type Auth
 } from 'firebase/auth'
 import {
   getFirestore,
-  Firestore,
+  type Firestore,
   connectFirestoreEmulator,
   enableNetwork,
   disableNetwork
 } from 'firebase/firestore'
-import { getStorage, FirebaseStorage } from 'firebase/storage'
-import { getFunctions, connectFunctionsEmulator } from 'firebase/functions'
+import { getStorage, type FirebaseStorage } from 'firebase/storage'
+import { getFunctions, connectFunctionsEmulator, type Functions } from 'firebase/functions'
 
 // Firebase Auth 타입 정의
-export type FirebaseAuth = ReturnType<typeof getAuth>
+export type FirebaseAuth = Auth
 
 // Firebase 설정 (환경변수에서 가져오기)
 const firebaseConfig = {
@@ -31,15 +32,18 @@ const firebaseConfig = {
 }
 
 // Firebase 서비스 인스턴스
-let app: FirebaseApp
-let auth: FirebaseAuth
-let db: Firestore
-let storage: FirebaseStorage
-let functions: any
+let app: FirebaseApp | undefined
+let auth: FirebaseAuth | undefined
+let db: Firestore | undefined
+let storage: FirebaseStorage | undefined
+let functions: Functions | undefined
 
 // 초기화 상태 추적
 let isInitialized = false
 let initializationPromise: Promise<boolean> | null = null
+
+// 에뮬레이터 연결 상태 추적
+let emulatorsConnected = false
 
 /**
  * Firebase 초기화 함수
@@ -78,7 +82,7 @@ export const initializeFirebase = async (): Promise<boolean> => {
       functions = getFunctions(app, 'asia-northeast3') // 서울 리전
 
       // 🚀 개발 환경에서 에뮬레이터 연결
-      if (import.meta.env.DEV && import.meta.env.VITE_USE_FIREBASE_EMULATOR === 'true') {
+      if (import.meta.env.DEV && import.meta.env.VITE_USE_FIREBASE_EMULATOR === 'true' && !emulatorsConnected) {
         console.log('🧪 Firebase 에뮬레이터 연결 중...')
 
         try {
@@ -91,6 +95,7 @@ export const initializeFirebase = async (): Promise<boolean> => {
           // Functions 에뮬레이터 (포트 5001)
           connectFunctionsEmulator(functions, 'localhost', 5001)
 
+          emulatorsConnected = true
           console.log('✅ Firebase 에뮬레이터 연결 완료')
         } catch (emulatorError) {
           console.warn('⚠️ Firebase 에뮬레이터 연결 실패, 프로덕션 환경 사용:', emulatorError)
@@ -183,7 +188,7 @@ export const getFirebaseStorage = (): FirebaseStorage => {
 /**
  * Firebase Functions 인스턴스 반환
  */
-export const getFirebaseFunctions = () => {
+export const getFirebaseFunctions = (): Functions => {
   if (!functions) {
     throw new Error('Firebase Functions가 초기화되지 않았습니다.')
   }
@@ -222,26 +227,46 @@ export const goOnline = async (): Promise<void> => {
   }
 }
 
-// Firebase 서비스들을 객체로 묶어서 기본 export
+/**
+ * Firebase 서비스 객체 생성 함수 (초기화 후 호출)
+ */
+export const getFirebaseServices = () => {
+  return {
+    app: getFirebaseApp(),
+    auth: getFirebaseAuth(),
+    db: getFirebaseFirestore(),
+    storage: getFirebaseStorage(),
+    functions: getFirebaseFunctions(),
+    initializeFirebase,
+    getFirebaseApp,
+    getFirebaseAuth,
+    getFirebaseFirestore,
+    getFirebaseStorage,
+    getFirebaseFunctions,
+    checkNetworkStatus,
+    goOffline,
+    goOnline
+  }
+}
+
+// 기본 export (초기화 함수와 getter 함수들만)
 const Firebase = {
-  app,
-  auth,
-  db,
-  storage,
-  functions,
   initializeFirebase,
   getFirebaseApp,
   getFirebaseAuth,
   getFirebaseFirestore,
   getFirebaseStorage,
   getFirebaseFunctions,
+  getFirebaseServices,
   checkNetworkStatus,
   goOffline,
   goOnline
 }
 
-// 기본 export (문제 해결을 위해 추가)
 export default Firebase
 
-// 명명된 export들 (기존 코드 호환성)
-export { app, auth, db, storage, functions }
+// 개별 서비스 인스턴스는 getter 함수를 통해서만 접근 가능
+export {
+  // 초기화되지 않은 변수들은 export하지 않음
+  // app, auth, db, storage, functions
+}

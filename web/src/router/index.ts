@@ -1,19 +1,19 @@
 // web/src/router/index.ts
-import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router'
-import { useAuthStore } from '../stores/auth'
+import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 
 // 컴포넌트 지연 로딩
-const LoginView = () => import('../views/auth/LoginView.vue')
-const RegisterView = () => import('../views/auth/RegisterView.vue')
-const HomeView = () => import('../views/home/HomeView.vue')
-const CourseListView = () => import('../views/course/CourseListView.vue')
-const CourseDetailView = () => import('../views/course/CourseDetailView.vue')
-const MyCoursesView = () => import('../views/course/MyCoursesView.vue')
-const LearningView = () => import('../views/learning/LearningView.vue')
-const VideoPlayerView = () => import('../views/learning/VideoPlayerView.vue')
-const CertificateListView = () => import('../views/certificate/CertificateListView.vue')
-const ProfileView = () => import('../views/profile/ProfileView.vue')
-const QRScanView = () => import('../views/qr/QRScanView.vue')
+const LoginView = () => import('@/views/auth/LoginView.vue')
+const RegisterView = () => import('@/views/auth/RegisterView.vue')
+const HomeView = () => import('@/views/home/HomeView.vue')
+const CourseListView = () => import('@/views/course/CourseListView.vue')
+const CourseDetailView = () => import('@/views/course/CourseDetailView.vue')
+const MyCoursesView = () => import('@/views/course/MyCoursesView.vue')
+const LearningView = () => import('@/views/learning/LearningView.vue')
+const VideoPlayerView = () => import('@/views/learning/VideoPlayerView.vue')
+const CertificateListView = () => import('@/views/certificate/CertificateListView.vue')
+const ProfileView = () => import('@/views/profile/ProfileView.vue')
+const QRScanView = () => import('@/views/qr/QRScanView.vue')
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -100,7 +100,7 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/video-warning/:id',
     name: 'VideoWarning',
-    component: () => import('../views/learning/VideoWarningView.vue'),
+    component: () => import('@/views/learning/VideoWarningView.vue'),
     meta: {
       requiresAuth: true,
       title: '안전 경고'
@@ -137,7 +137,7 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/:pathMatch(.*)*',
     name: 'NotFound',
-    component: () => import('../views/NotFoundView.vue'),
+    component: () => import('@/views/NotFoundView.vue'),
     meta: {
       title: '페이지를 찾을 수 없음'
     }
@@ -161,13 +161,13 @@ router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore()
 
   // 인증 상태 확인 (처음 로드 시)
-  if (authStore.user === null) {
-    await authStore.checkAuthState()
+  if (!authStore.isInitialized) {
+    await authStore.initializeAuth()
   }
 
   const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
   const hideForAuth = to.matched.some(record => record.meta.hideForAuth)
-  const isAuthenticated = authStore.isAuthenticated
+  const isAuthenticated = authStore.isLoggedIn
 
   // 인증이 필요한 페이지
   if (requiresAuth && !isAuthenticated) {
@@ -200,7 +200,7 @@ router.afterEach((to) => {
   }
 
   // 네이티브 앱에서 페이지 변경 알림
-  if (window.Android) {
+  if (typeof window !== 'undefined' && (window as any).Android) {
     try {
       // 현재 페이지 정보를 네이티브에 전달 (필요한 경우)
       console.log(`페이지 변경: ${to.path}`)

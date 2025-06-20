@@ -9,9 +9,8 @@ import {
   onAuthStateChanged,
   updateProfile,
   sendPasswordResetEmail,
-  User,
-  AuthErrorCodes,
-  deleteUser
+  deleteUser,
+  type User
 } from 'firebase/auth'
 import {
   doc,
@@ -20,10 +19,10 @@ import {
   updateDoc,
   deleteDoc,
   serverTimestamp,
-  Timestamp
+  type Timestamp
 } from 'firebase/firestore'
 import { getFirebaseAuth, getFirebaseFirestore } from '@/services/firebase'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage } from 'element-plus'
 
 // 🔐 사용자 타입 정의
 export interface UserProfile {
@@ -161,19 +160,30 @@ export const useAuthStore = defineStore('auth', () => {
 
       if (userSnap.exists()) {
         const data = userSnap.data()
+
+        // Timestamp 처리 헬퍼 함수
+        const convertTimestamp = (timestamp: any): Date | undefined => {
+          if (!timestamp) return undefined
+          if (timestamp instanceof Date) return timestamp
+          if (timestamp?.toDate && typeof timestamp.toDate === 'function') {
+            return timestamp.toDate()
+          }
+          return undefined
+        }
+
         return {
           uid,
           email: data.email,
           name: data.name || '',
           phone: data.phone,
-          dob: data.dob instanceof Timestamp ? data.dob.toDate() : data.dob,
+          dob: convertTimestamp(data.dob),
           role: data.role || 'user',
           provider: data.provider || 'email',
-          joinedAt: data.joinedAt instanceof Timestamp ? data.joinedAt.toDate() : data.joinedAt,
-          lastLoginAt: data.lastLoginAt instanceof Timestamp ? data.lastLoginAt.toDate() : data.lastLoginAt,
+          joinedAt: convertTimestamp(data.joinedAt) || new Date(),
+          lastLoginAt: convertTimestamp(data.lastLoginAt),
           isTemporary: data.isTemporary || false,
           privacyConsent: data.privacyConsent,
-          privacyConsentDate: data.privacyConsentDate instanceof Timestamp ? data.privacyConsentDate.toDate() : data.privacyConsentDate,
+          privacyConsentDate: convertTimestamp(data.privacyConsentDate),
           accessLevel: data.accessLevel || 'standard'
         } as UserProfile
       }
@@ -220,23 +230,25 @@ export const useAuthStore = defineStore('auth', () => {
 
       let errorMessage = '로그인에 실패했습니다.'
       switch (err.code) {
-        case AuthErrorCodes.INVALID_EMAIL:
+        case 'auth/invalid-email':
           errorMessage = '유효하지 않은 이메일 형식입니다.'
           break
-        case AuthErrorCodes.USER_DELETED:
+        case 'auth/user-not-found':
+        case 'auth/user-deleted':
           errorMessage = '존재하지 않는 계정입니다.'
           break
-        case AuthErrorCodes.INVALID_LOGIN_CREDENTIALS:
-        case AuthErrorCodes.INVALID_PASSWORD:
+        case 'auth/wrong-password':
+        case 'auth/invalid-credential':
+        case 'auth/invalid-login-credentials':
           errorMessage = '이메일 또는 비밀번호가 올바르지 않습니다.'
           break
-        case AuthErrorCodes.TOO_MANY_ATTEMPTS_TRY_LATER:
+        case 'auth/too-many-requests':
           errorMessage = '로그인 시도가 너무 많습니다. 잠시 후 다시 시도해주세요.'
           break
-        case AuthErrorCodes.NETWORK_REQUEST_FAILED:
+        case 'auth/network-request-failed':
           errorMessage = '네트워크 연결을 확인해주세요.'
           break
-        case AuthErrorCodes.USER_DISABLED:
+        case 'auth/user-disabled':
           errorMessage = '비활성화된 계정입니다. 관리자에게 문의하세요.'
           break
         default:
@@ -301,16 +313,16 @@ export const useAuthStore = defineStore('auth', () => {
 
       let errorMessage = '회원가입에 실패했습니다.'
       switch (err.code) {
-        case AuthErrorCodes.EMAIL_EXISTS:
+        case 'auth/email-already-in-use':
           errorMessage = '이미 가입된 이메일입니다.'
           break
-        case AuthErrorCodes.INVALID_EMAIL:
+        case 'auth/invalid-email':
           errorMessage = '유효하지 않은 이메일 형식입니다.'
           break
-        case AuthErrorCodes.WEAK_PASSWORD:
+        case 'auth/weak-password':
           errorMessage = '비밀번호는 8자 이상이어야 하며 영문과 숫자를 포함해야 합니다.'
           break
-        case AuthErrorCodes.NETWORK_REQUEST_FAILED:
+        case 'auth/network-request-failed':
           errorMessage = '네트워크 연결을 확인해주세요.'
           break
         default:
@@ -452,10 +464,11 @@ export const useAuthStore = defineStore('auth', () => {
 
       let errorMessage = '비밀번호 재설정에 실패했습니다.'
       switch (err.code) {
-        case AuthErrorCodes.USER_DELETED:
+        case 'auth/user-not-found':
+        case 'auth/user-deleted':
           errorMessage = '존재하지 않는 계정입니다.'
           break
-        case AuthErrorCodes.INVALID_EMAIL:
+        case 'auth/invalid-email':
           errorMessage = '유효하지 않은 이메일 형식입니다.'
           break
         default:
