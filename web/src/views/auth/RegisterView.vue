@@ -41,7 +41,7 @@
           :space="80"
         >
           <el-step title="기본정보" :icon="User" />
-          <el-step title="추가정보" :icon="IdCard" />
+          <el-step title="추가정보" :icon="CreditCard" />
           <el-step title="약관동의" :icon="DocumentChecked" />
         </el-steps>
 
@@ -298,10 +298,10 @@ import type { RegisterData } from '@/stores/auth'
 import type { FormInstance, FormRules } from 'element-plus'
 import { ElMessage } from 'element-plus'
 import {
-  Shield,
+  Key,
   UserFilled,
   User,
-  IdCard,
+  CreditCard,
   DocumentChecked,
   Message,
   Lock,
