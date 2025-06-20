@@ -141,7 +141,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { Search, VideoPlay, Loading } from '@element-plus/icons-vue'
-import { useLectureStore, type LectureLevel, type LectureStatus, type ExtendedLecture } from '@/stores/lectures.ts'
+import { useLectureStore, type LectureLevel, type LectureStatus, type ExtendedLecture } from '@/stores/learning.ts'
 import { useCategoryStore } from '@/stores/categoryStore.ts'
 import type { MainCategory, MiddleCategory, LeafCategory } from '@/types/category.ts'
 

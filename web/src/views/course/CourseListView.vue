@@ -116,8 +116,11 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { ArrowLeft, Search } from '@element-plus/icons-vue'
-import { useCourseStore } from '@/stores/courses.ts'
+import { useCourseStore } from '@/stores/courses'
 import CourseCard from '@/components/course/CourseCard.vue'
+
+// 타입 정의
+type SortType = 'latest' | 'popular' | 'rating' | 'price'
 
 // 스토어 및 라우터
 const router = useRouter()
@@ -138,17 +141,17 @@ const isEnrolled = computed(() => courseStore.isEnrolled)
 // 검색 및 필터 상태
 const searchQuery = computed({
   get: () => courseStore.searchQuery,
-  set: (value) => courseStore.searchCourses(value)
+  set: (value: string) => courseStore.searchCourses(value)
 })
 
 const selectedCategory = computed({
   get: () => courseStore.selectedCategory,
-  set: (value) => courseStore.filterByCategory(value)
+  set: (value: string) => courseStore.filterByCategory(value)
 })
 
 const sortBy = computed({
   get: () => courseStore.sortBy,
-  set: (value) => courseStore.sortCourses(value)
+  set: (value: SortType) => courseStore.sortCourses(value)
 })
 
 /**
@@ -174,7 +177,7 @@ const filterByCategory = (categoryId: string) => {
   courseStore.filterByCategory(categoryId)
 }
 
-const handleSort = (sortType: string) => {
+const handleSort = (sortType: SortType) => {
   courseStore.sortCourses(sortType)
 }
 
@@ -184,10 +187,10 @@ const resetFilters = () => {
 
 const handleEnroll = async (courseId: string) => {
   try {
-    await courseStore.enrollInCourse(courseId)
-    ElMessage.success('강의 신청이 완료되었습니다.')
-  } catch (error) {
-    ElMessage.error(error.message || '강의 신청에 실패했습니다.')
+    // 강의 등록 페이지로 이동
+    router.push(`/courses/${courseId}/enroll`)
+  } catch (error: any) {
+    ElMessage.error(error.message || '강의 신청 페이지로 이동할 수 없습니다.')
   }
 }
 

@@ -80,19 +80,19 @@
         <el-row :gutter="20">
           <el-col :span="8">
             <div class="stat-item">
-              <div class="stat-value">{{ lectureStats.completedLectures }}</div>
+              <div class="stat-value">{{ learningStats.completedCourses }}</div>
               <div class="stat-label">완료한 강의</div>
             </div>
           </el-col>
           <el-col :span="8">
             <div class="stat-item">
-              <div class="stat-value">{{ lectureStats.totalLectures }}</div>
+              <div class="stat-value">{{ learningStats.totalCourses }}</div>
               <div class="stat-label">전체 강의</div>
             </div>
           </el-col>
           <el-col :span="8">
             <div class="stat-item">
-              <div class="stat-value">{{ lectureStats.completionRate }}%</div>
+              <div class="stat-value">{{ learningStats.completionRate }}%</div>
               <div class="stat-label">완료율</div>
             </div>
           </el-col>
@@ -113,12 +113,12 @@
             </el-card>
           </el-col>
           <el-col :span="8">
-            <el-card shadow="hover" @click="goToLectures" class="menu-card">
+            <el-card shadow="hover" @click="goToMyLearning" class="menu-card">
               <div class="menu-item">
                 <el-icon :size="32" color="#409EFF">
                   <VideoPlay />
                 </el-icon>
-                <span>내 강의</span>
+                <span>내 학습</span>
               </div>
             </el-card>
           </el-col>
@@ -153,16 +153,17 @@
           >
             <div class="course-thumbnail">
               <img :src="course.thumbnail || '/default-course.jpg'" :alt="course.title" />
-              <div class="course-category">{{ course.category }}</div>
+              <div class="course-badge" v-if="course.price === 0">
+                <el-tag type="success" size="small">무료</el-tag>
+              </div>
             </div>
             <div class="course-info">
               <h4>{{ course.title }}</h4>
               <p>{{ course.description }}</p>
               <div class="course-meta">
-                <span class="duration">{{ course.duration }}분</span>
-                <span class="difficulty">{{ getDifficultyText(course.difficulty) }}</span>
+                <span class="instructor">{{ course.instructor }}</span>
+                <span class="duration">{{ formatDuration(course.duration) }}</span>
                 <span class="price" v-if="course.price > 0">{{ formatPrice(course.price) }}</span>
-                <span class="price free" v-else>무료</span>
               </div>
             </div>
           </div>
@@ -173,27 +174,39 @@
       <el-card class="recent-activities">
         <template #header>
           <div class="card-header">
-            <span>최근 학습 내역</span>
-            <el-link type="primary" @click="goToLectures">전체보기</el-link>
+            <span>최근 학습</span>
+            <el-link type="primary" @click="goToMyLearning">전체보기</el-link>
           </div>
         </template>
 
-        <div v-if="recentLecturesData.length > 0">
+        <div v-if="recentLearnings.length > 0">
           <div
-            v-for="lecture in recentLecturesData"
-            :key="lecture.id"
+            v-for="learning in recentLearnings"
+            :key="learning.courseId"
             class="activity-item"
-            @click="goToLecture(lecture.id)"
+            @click="continueLearning(learning.courseId)"
           >
             <div class="activity-info">
-              <h4>{{ lecture.title }}</h4>
-              <p>진행률: {{ lecture.progress }}%</p>
+              <h4>{{ learning.courseTitle }}</h4>
+              <div class="activity-meta">
+                <span>진행률: {{ learning.progress }}%</span>
+                <span class="separator">·</span>
+                <span>{{ formatRelativeTime(learning.lastAccessedAt) }}</span>
+              </div>
             </div>
             <el-progress
-              :percentage="lecture.progress"
+              :percentage="learning.progress"
               :stroke-width="6"
-              :color="lecture.progress === 100 ? '#67C23A' : '#409EFF'"
+              :color="learning.progress === 100 ? '#67C23A' : '#409EFF'"
             />
+            <el-button
+              v-if="learning.progress < 100"
+              type="primary"
+              size="small"
+              @click.stop="continueLearning(learning.courseId)"
+            >
+              이어보기
+            </el-button>
           </div>
         </div>
         <el-empty v-else description="아직 학습한 강의가 없습니다">
@@ -223,69 +236,34 @@ import {
   Plus
 } from '@element-plus/icons-vue'
 import { useAuthStore } from '@/stores/auth'
-import { useLectureStore } from '@/stores/lectures'
-import { useCourseStore } from '@/stores/courses.ts'
-import nativeBridge from '@/services/native-bridge'
+import { useLearningStore } from '@/stores/learning'
+import { useCourseStore } from '@/stores/courses'
+import { useQRStore } from '@/stores/qr'
 
 // 스토어 및 라우터
 const router = useRouter()
 const authStore = useAuthStore()
-const lectureStore = useLectureStore()
+const learningStore = useLearningStore()
 const courseStore = useCourseStore()
-
-// 상태
-const isScanning = ref(false)
+const qrStore = useQRStore()
 
 // 계산된 속성
 const userName = computed(() => authStore.user?.displayName || '사용자')
 const userEmail = computed(() => authStore.user?.email || '')
 const userAvatar = computed(() => authStore.user?.photoURL || '')
-const lectureStats = computed(() => lectureStore.lectureStats)
-const recentLecturesData = computed(() => lectureStore.recentLectures)
+const learningStats = computed(() => learningStore.learningStats)
+const recentLearnings = computed(() => learningStore.myLearnings.slice(0, 3))
 const recommendedCourses = computed(() => courseStore.recommendedCourses.slice(0, 3))
+const isScanning = computed(() => qrStore.isScanning)
 
 /**
  * QR 코드 스캔
  */
 const handleQRScan = async (): Promise<void> => {
   try {
-    isScanning.value = true
-
-    // 카메라 권한 확인
-    if (nativeBridge.isNativeApp()) {
-      const hasPermission = await nativeBridge.requestCameraPermission()
-      if (!hasPermission) {
-        ElMessage.warning('카메라 권한이 필요합니다.')
-        return
-      }
-    }
-
-    // QR 스캔 실행
-    const result = await nativeBridge.scanQR()
-
-    if (result) {
-      try {
-        const qrData = JSON.parse(result)
-
-        // QR 데이터 검증
-        if (qrData.type === 'lecture' && qrData.lectureId) {
-          // 강의 페이지로 이동
-          await router.push(`/lectures/${qrData.lectureId}/watch`)
-          ElMessage.success('강의를 시작합니다.')
-        } else {
-          ElMessage.error('유효하지 않은 QR 코드입니다.')
-        }
-      } catch (parseError) {
-        console.error('QR 데이터 파싱 오류:', parseError)
-        ElMessage.error('QR 코드 형식이 올바르지 않습니다.')
-      }
-    }
-
+    await qrStore.scanQR()
   } catch (error) {
     console.error('QR 스캔 오류:', error)
-    ElMessage.error('QR 스캔에 실패했습니다.')
-  } finally {
-    isScanning.value = false
   }
 }
 
@@ -339,32 +317,38 @@ const goToCourseEnroll = (): void => {
   router.push('/courses')
 }
 
-const goToLectures = (): void => {
-  router.push('/lectures')
+const goToMyLearning = (): void => {
+  router.push('/my-learning')
 }
 
 const goToCertificates = (): void => {
   router.push('/certificates')
 }
 
-const goToLecture = (id: string): void => {
-  router.push(`/lectures/${id}/watch`)
-}
-
 const goToCourseDetail = (id: string): void => {
   router.push(`/courses/${id}`)
+}
+
+const continueLearning = async (courseId: string): Promise<void> => {
+  try {
+    await learningStore.startLearning(courseId)
+    router.push(`/learning/${courseId}`)
+  } catch (error) {
+    ElMessage.error('학습을 시작할 수 없습니다.')
+  }
 }
 
 /**
  * 유틸리티 함수
  */
-const getDifficultyText = (difficulty: string): string => {
-  const map: Record<string, string> = {
-    beginner: '초급',
-    intermediate: '중급',
-    advanced: '고급'
+const formatDuration = (minutes?: number): string => {
+  if (!minutes) return ''
+  if (minutes < 60) {
+    return `${minutes}분`
   }
-  return map[difficulty] || '초급'
+  const hours = Math.floor(minutes / 60)
+  const remainingMinutes = minutes % 60
+  return remainingMinutes > 0 ? `${hours}시간 ${remainingMinutes}분` : `${hours}시간`
 }
 
 const formatPrice = (price: number): string => {
@@ -374,6 +358,19 @@ const formatPrice = (price: number): string => {
   }).format(price)
 }
 
+const formatRelativeTime = (date: Date): string => {
+  const now = new Date()
+  const diff = now.getTime() - date.getTime()
+  const minutes = Math.floor(diff / 60000)
+  const hours = Math.floor(minutes / 60)
+  const days = Math.floor(hours / 24)
+
+  if (days > 0) return `${days}일 전`
+  if (hours > 0) return `${hours}시간 전`
+  if (minutes > 0) return `${minutes}분 전`
+  return '방금 전'
+}
+
 /**
  * 초기화
  */
@@ -381,7 +378,7 @@ onMounted(async () => {
   try {
     // 스토어 초기화
     await Promise.all([
-      lectureStore.initialize(),
+      learningStore.initialize(),
       courseStore.loadRecommendedCourses()
     ])
   } catch (error) {
@@ -596,15 +593,10 @@ onMounted(async () => {
   object-fit: cover;
 }
 
-.course-category {
+.course-badge {
   position: absolute;
   top: 4px;
-  left: 4px;
-  background: rgba(0, 0, 0, 0.7);
-  color: white;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 10px;
+  right: 4px;
 }
 
 .course-info {
@@ -640,24 +632,13 @@ onMounted(async () => {
   gap: 8px;
   align-items: center;
   margin-top: auto;
-}
-
-.course-meta span {
   font-size: 12px;
-  padding: 2px 6px;
-  border-radius: 4px;
-  background: #e9ecef;
-  color: #495057;
+  color: #909399;
 }
 
 .course-meta .price {
-  background: #E6A23C;
-  color: white;
+  color: #E6A23C;
   font-weight: 600;
-}
-
-.course-meta .price.free {
-  background: #67C23A;
 }
 
 .recent-activities {
@@ -675,6 +656,9 @@ onMounted(async () => {
   border-bottom: 1px solid #ebeef5;
   cursor: pointer;
   transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
 
 .activity-item:hover {
@@ -688,7 +672,7 @@ onMounted(async () => {
 }
 
 .activity-info {
-  margin-bottom: 8px;
+  flex: 1;
 }
 
 .activity-info h4 {
@@ -698,10 +682,18 @@ onMounted(async () => {
   margin: 0 0 4px 0;
 }
 
-.activity-info p {
+.activity-meta {
   font-size: 12px;
   color: #909399;
-  margin: 0;
+}
+
+.separator {
+  margin: 0 4px;
+}
+
+.activity-item .el-progress {
+  flex: 1;
+  max-width: 200px;
 }
 
 /* 반응형 디자인 */
@@ -726,6 +718,16 @@ onMounted(async () => {
   .course-thumbnail {
     width: 100%;
     height: 160px;
+  }
+
+  .activity-item {
+    flex-wrap: wrap;
+  }
+
+  .activity-item .el-progress {
+    width: 100%;
+    max-width: none;
+    order: 3;
   }
 }
 </style>

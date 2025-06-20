@@ -52,7 +52,7 @@
                   </div>
                   <div class="meta-item">
                     <el-icon><Clock /></el-icon>
-                    <span>{{ formatDuration(currentCourse.duration) }}</span>
+                    <span>{{ formatDuration(currentCourse.duration || 0) }}</span>
                   </div>
                   <div class="meta-item">
                     <el-icon><VideoPlay /></el-icon>
@@ -120,19 +120,19 @@
             <div class="payment-methods">
               <h4>결제 방법</h4>
               <el-radio-group v-model="selectedPaymentMethod">
-                <el-radio label="card" size="large">
+                <el-radio value="card" size="large">
                   <div class="payment-option">
                     <el-icon><CreditCard /></el-icon>
                     <span>신용카드</span>
                   </div>
                 </el-radio>
-                <el-radio label="bank" size="large">
+                <el-radio value="bank" size="large">
                   <div class="payment-option">
                     <el-icon><Wallet /></el-icon>
                     <span>계좌이체</span>
                   </div>
                 </el-radio>
-                <el-radio label="mobile" size="large">
+                <el-radio value="mobile" size="large">
                   <div class="payment-option">
                     <el-icon><Iphone /></el-icon>
                     <span>휴대폰 결제</span>
@@ -288,7 +288,22 @@ import {
   Wallet,
   Iphone
 } from '@element-plus/icons-vue'
-import { useCourseStore } from '@/stores/courses.ts'
+import { useCourseStore } from '@/stores/courses'
+
+// 타입 정의
+interface EnrollmentResult {
+  enrollmentId: string
+  enrolledAt: Date
+  paymentId?: string
+  message: string
+}
+
+interface PaymentData {
+  courseId: string
+  amount: number
+  method: string
+  transactionId?: string
+}
 
 // 라우터
 const route = useRoute()
@@ -309,7 +324,7 @@ const dialogVisible = ref({
   privacy: false,
   refund: false
 })
-const enrollmentResult = ref(null)
+const enrollmentResult = ref<EnrollmentResult | null>(null)
 
 // 계산된 속성
 const courseId = computed(() => route.params.id as string)
@@ -363,11 +378,11 @@ const processPayment = async () => {
     await new Promise(resolve => setTimeout(resolve, 2000))
 
     // TODO: 실제 결제 API 연동
-    const paymentData = {
+    const paymentData: PaymentData = {
       courseId: courseId.value,
-      amount: currentCourse.value?.price,
+      amount: currentCourse.value?.price || 0,
       method: selectedPaymentMethod.value,
-      // 기타 결제 정보
+      transactionId: `PAY_${Date.now()}`
     }
 
     // 결제 성공 후 강의 등록
@@ -381,7 +396,7 @@ const processPayment = async () => {
   }
 }
 
-const processEnrollment = async (paymentData = null) => {
+const processEnrollment = async (paymentData: PaymentData | null = null) => {
   try {
     isProcessing.value = true
 
@@ -400,7 +415,7 @@ const processEnrollment = async (paymentData = null) => {
     currentStep.value = 2
     ElMessage.success('강의 신청이 완료되었습니다!')
 
-  } catch (error) {
+  } catch (error: any) {
     ElMessage.error(error.message || '강의 신청에 실패했습니다.')
     console.error('Enrollment error:', error)
   } finally {
@@ -447,7 +462,8 @@ const formatPrice = (price: number): string => {
   }).format(price)
 }
 
-const formatDateTime = (date: Date): string => {
+const formatDateTime = (date: Date | undefined): string => {
+  if (!date) return ''
   return new Intl.DateTimeFormat('ko-KR', {
     year: 'numeric',
     month: 'long',

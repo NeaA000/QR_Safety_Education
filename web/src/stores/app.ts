@@ -22,6 +22,30 @@ export interface ToastMessage {
   timestamp: number
 }
 
+// 네이티브 브리지 타입 정의
+declare global {
+  interface Window {
+    isNativeApp?: boolean
+    Android?: {
+      requestPermission: (permission: string) => Promise<boolean>
+      showToast: (message: string) => void
+      getDeviceInfo: () => string
+      scanQR: () => Promise<string>
+      getLocation: () => string
+    }
+    webkit?: {
+      messageHandlers?: {
+        requestPermission: {
+          postMessage: (permission: string) => void
+        }
+        showToast: {
+          postMessage: (message: string) => void
+        }
+      }
+    }
+  }
+}
+
 export const useAppStore = defineStore('app', () => {
   // 상태
   const isLoading = ref(false)
@@ -49,25 +73,25 @@ export const useAppStore = defineStore('app', () => {
   const initialize = async (): Promise<void> => {
     try {
       isLoading.value = true
-      
+
       // 온라인 상태 감지
       window.addEventListener('online', () => {
         isOnline.value = true
         showToast('인터넷에 연결되었습니다.', 'success')
       })
-      
+
       window.addEventListener('offline', () => {
         isOnline.value = false
         showToast('인터넷 연결이 끊어졌습니다.', 'warning')
       })
-      
+
       // 네이티브 앱 설정
       if (isNativeApp.value) {
         await initializeNativeFeatures()
       }
-      
+
       console.log('🚀 앱 초기화 완료')
-      
+
     } catch (error) {
       console.error('앱 초기화 오류:', error)
       throw error
@@ -81,25 +105,25 @@ export const useAppStore = defineStore('app', () => {
       // 네이티브 브리지 설정
       if (window.Android) {
         console.log('Android 네이티브 기능 초기화')
-        
+
         // 권한 확인
         const cameraPermission = await window.Android.requestPermission('CAMERA')
         if (!cameraPermission) {
           config.value.features.qrScanner = false
         }
       }
-      
+
       if (window.webkit) {
         console.log('iOS 네이티브 기능 초기화')
       }
-      
+
     } catch (error) {
       console.error('네이티브 기능 초기화 오류:', error)
     }
   }
 
   const showToast = (
-    message: string, 
+    message: string,
     type: ToastMessage['type'] = 'info',
     duration: number = 3000
   ): string => {
@@ -111,21 +135,21 @@ export const useAppStore = defineStore('app', () => {
       duration,
       timestamp: Date.now()
     }
-    
+
     toasts.value.push(toast)
-    
+
     // 자동 제거
     if (duration > 0) {
       setTimeout(() => {
         removeToast(id)
       }, duration)
     }
-    
+
     // 네이티브 앱에도 토스트 표시
     if (isNativeApp.value && window.Android) {
       window.Android.showToast(message)
     }
-    
+
     return id
   }
 
@@ -160,7 +184,7 @@ export const useAppStore = defineStore('app', () => {
       isNativeApp: isNativeApp.value,
       timestamp: new Date().toISOString()
     }
-    
+
     // 네이티브 앱에서 추가 정보
     if (isNativeApp.value && window.Android) {
       try {
@@ -170,24 +194,26 @@ export const useAppStore = defineStore('app', () => {
         console.error('네이티브 디바이스 정보 가져오기 실패:', error)
       }
     }
-    
+
     return info
   }
 
   const logEvent = (eventName: string, eventData?: object): void => {
     if (!config.value.features.analytics) return
-    
+
     const eventInfo = {
       name: eventName,
       data: eventData,
       timestamp: new Date().toISOString(),
       device: getDeviceInfo()
     }
-    
+
     console.log('📊 Analytics Event:', eventInfo)
-    
+
     // TODO: Firebase Analytics로 전송
-    // logAnalyticsEvent(eventName, eventData)
+    // import { analytics } from '@/services/firebase'
+    // import { logEvent as firebaseLogEvent } from 'firebase/analytics'
+    // firebaseLogEvent(analytics, eventName, eventData)
   }
 
   return {
@@ -197,12 +223,12 @@ export const useAppStore = defineStore('app', () => {
     isNativeApp,
     toasts,
     config,
-    
+
     // 계산된 속성
     isDevelopment,
     isProduction,
     canUseQRScanner,
-    
+
     // 액션
     initialize,
     showToast,

@@ -1,295 +1,159 @@
 <template>
-  <el-card class="my-course-card" shadow="hover">
-    <div class="course-content">
-      <!-- 썸네일 -->
-      <div class="course-thumbnail">
-        <img
-          :src="courseData?.thumbnail || '/default-course.jpg'"
-          :alt="enrollment.courseName"
-          @error="handleImageError"
+  <el-card
+    class="course-card"
+    shadow="hover"
+    @click="handleCardClick"
+  >
+    <!-- 썸네일 -->
+    <div class="course-thumbnail">
+      <img
+        :src="course.thumbnail || '/default-course.jpg'"
+        :alt="course.title"
+        @error="handleImageError"
+      />
+      <div class="course-badge">
+        <el-tag v-if="(course as any).isNew" type="danger" size="small">NEW</el-tag>
+        <el-tag v-if="(course as any).isBest" type="warning" size="small">BEST</el-tag>
+        <el-tag v-if="course.price === 0" type="success" size="small">무료</el-tag>
+      </div>
+      <div class="course-rating" v-if="course.rating && course.rating > 0">
+        <el-icon><Star /></el-icon>
+        <span>{{ course.rating.toFixed(1) }}</span>
+      </div>
+    </div>
+
+    <!-- 강의 정보 -->
+    <div class="course-info">
+      <div class="course-category">
+        {{ getCategoryName(course.categoryId) }}
+      </div>
+
+      <h3 class="course-title" :title="course.title">
+        {{ course.title }}
+      </h3>
+
+      <p class="course-description" :title="course.description">
+        {{ course.description }}
+      </p>
+
+      <div class="course-instructor">
+        <el-avatar
+          :src="course.instructorPhoto"
+          :icon="UserFilled"
+          :size="24"
         />
-        <div class="progress-overlay">
-          <div class="progress-circle">
-            <el-progress
-              type="circle"
-              :percentage="enrollment.progress"
-              :width="60"
-              :stroke-width="6"
-              :color="progressColor"
-            />
-          </div>
-        </div>
-        <div class="status-badge">
-          <el-tag :type="statusType" size="small">
-            {{ statusText }}
-          </el-tag>
-        </div>
+        <span>{{ course.instructor }}</span>
       </div>
 
-      <!-- 강의 정보 -->
-      <div class="course-info">
-        <div class="course-header">
-          <h3 class="course-title" :title="enrollment.courseName">
-            {{ enrollment.courseName }}
-          </h3>
-          <el-dropdown @command="handleMenuCommand">
-            <el-button :icon="MoreFilled" circle size="small" />
-            <template #dropdown>
-              <el-dropdown-menu>
-                <el-dropdown-item command="view-course">강의 정보</el-dropdown-item>
-                <el-dropdown-item
-                  v-if="enrollment.status === 'active'"
-                  command="pause"
-                >
-                  일시정지
-                </el-dropdown-item>
-                <el-dropdown-item
-                  v-if="enrollment.status === 'paused'"
-                  command="resume"
-                >
-                  재개하기
-                </el-dropdown-item>
-                <el-dropdown-item
-                  v-if="isCompleted"
-                  command="certificate"
-                >
-                  수료증 보기
-                </el-dropdown-item>
-                <el-dropdown-item divided command="remove">
-                  강의 삭제
-                </el-dropdown-item>
-              </el-dropdown-menu>
-            </template>
-          </el-dropdown>
+      <div class="course-meta">
+        <div class="meta-item">
+          <el-icon><Clock /></el-icon>
+          <span>{{ formatDuration(course.duration || 0) }}</span>
         </div>
-
-        <div class="course-meta">
-          <div class="meta-item">
-            <el-icon><User /></el-icon>
-            <span>{{ courseData?.instructor || '강사 정보 없음' }}</span>
-          </div>
-          <div class="meta-item">
-            <el-icon><Clock /></el-icon>
-            <span>마지막 학습: {{ formatLastAccessed(enrollment.lastAccessedAt) }}</span>
-          </div>
-        </div>
-
-        <div class="progress-info">
-          <div class="progress-text">
-            <span>진행률: {{ enrollment.progress }}%</span>
-            <span class="lecture-progress">
-              {{ enrollment.completedLectures?.length || 0 }} / {{ enrollment.totalLectures }} 강의
-            </span>
-          </div>
-          <el-progress
-            :percentage="enrollment.progress"
-            :stroke-width="8"
-            :color="progressColor"
-            :show-text="false"
-          />
-        </div>
-
-        <div class="learning-stats" v-if="enrollment.watchTime">
-          <div class="stat-item">
-            <span class="stat-label">학습 시간</span>
-            <span class="stat-value">{{ formatDuration(enrollment.watchTime) }}</span>
-          </div>
-          <div class="stat-item" v-if="enrollment.lastLecture">
-            <span class="stat-label">최근 강의</span>
-            <span class="stat-value">{{ enrollment.lastLecture }}</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- 액션 버튼 -->
-      <div class="course-actions">
-        <el-button
-          v-if="!isCompleted"
-          type="primary"
-          size="large"
-          @click="handleContinue"
-          :disabled="enrollment.status === 'paused'"
-        >
+        <div class="meta-item">
           <el-icon><VideoPlay /></el-icon>
-          {{ enrollment.progress === 0 ? '학습 시작' : '이어서 학습' }}
-        </el-button>
-
-        <el-button
-          v-else
-          type="success"
-          size="large"
-          @click="handleViewCertificate"
-        >
-          <el-icon><Trophy /></el-icon>
-          수료증 보기
-        </el-button>
-
-        <div class="action-info">
-          <div v-if="enrollment.enrolledAt" class="enrolled-date">
-            등록일: {{ formatDate(enrollment.enrolledAt) }}
-          </div>
-          <div v-if="isCompleted && enrollment.completedAt" class="completed-date">
-            완료일: {{ formatDate(enrollment.completedAt) }}
-          </div>
+          <span>{{ course.lectureCount || 0 }}강</span>
+        </div>
+        <div class="meta-item">
+          <el-icon><User /></el-icon>
+          <span>{{ course.enrollmentCount || 0 }}명</span>
         </div>
       </div>
+
+      <div class="course-difficulty" v-if="(course as any).difficulty">
+        <el-tag
+          :type="getDifficultyType((course as any).difficulty)"
+          size="small"
+        >
+          {{ getDifficultyText((course as any).difficulty) }}
+        </el-tag>
+      </div>
+    </div>
+
+    <!-- 가격 및 신청 버튼 -->
+    <div class="course-footer">
+      <div class="course-price">
+        <span v-if="course.originalPrice && course.originalPrice > course.price" class="original-price">
+          {{ formatPrice(course.originalPrice) }}
+        </span>
+        <span class="current-price" :class="{ free: course.price === 0 }">
+          {{ course.price === 0 ? '무료' : formatPrice(course.price) }}
+        </span>
+      </div>
+
+      <el-button
+        v-if="!isEnrolled"
+        type="primary"
+        size="small"
+        @click.stop="handleEnroll"
+        :loading="isEnrolling"
+      >
+        {{ course.price === 0 ? '무료 신청' : '신청하기' }}
+      </el-button>
+
+      <el-button
+        v-else
+        type="success"
+        size="small"
+        @click.stop="goToLecture"
+      >
+        학습하기
+      </el-button>
     </div>
   </el-card>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import {
-  User,
+  Star,
   Clock,
   VideoPlay,
-  Trophy,
-  MoreFilled
+  User,
+  UserFilled
 } from '@element-plus/icons-vue'
-import { useCourseStore } from '@/stores/courses.ts'
+import { useCourseStore, type Course } from '@/stores/courses'
 
-// Props
-interface Enrollment {
-  id: string
-  courseId: string
-  courseName: string
-  enrolledAt: Date
-  lastAccessedAt: Date
-  completedAt?: Date
-  status: 'active' | 'completed' | 'paused'
-  progress: number
-  completedLectures: string[]
-  totalLectures: number
-  watchTime?: number
-  lastLecture?: string
-}
-
+// Props 인터페이스 정의
 interface Props {
-  enrollment: Enrollment
+  course: Course
+  isEnrolled: boolean
 }
 
 const props = defineProps<Props>()
 
 // Emits
 const emit = defineEmits<{
-  continue: [enrollment: Enrollment]
-  'view-certificate': [enrollment: Enrollment]
-  pause: [enrollment: Enrollment]
-  resume: [enrollment: Enrollment]
+  enroll: [courseId: string]
 }>()
 
 // 상태
+const router = useRouter()
 const courseStore = useCourseStore()
-const courseData = ref(null)
+const isEnrolling = ref(false)
 
 // 계산된 속성
-const isCompleted = computed(() =>
-  props.enrollment.status === 'completed' || props.enrollment.progress >= 100
-)
-
-const statusText = computed(() => {
-  switch (props.enrollment.status) {
-    case 'completed':
-      return '완료'
-    case 'paused':
-      return '일시정지'
-    case 'active':
-      return props.enrollment.progress === 0 ? '시작 전' : '진행 중'
-    default:
-      return '알 수 없음'
-  }
-})
-
-const statusType = computed(() => {
-  switch (props.enrollment.status) {
-    case 'completed':
-      return 'success'
-    case 'paused':
-      return 'warning'
-    case 'active':
-      return props.enrollment.progress === 0 ? 'info' : 'primary'
-    default:
-      return 'info'
-  }
-})
-
-const progressColor = computed(() => {
-  if (props.enrollment.progress >= 100) return '#67C23A'
-  if (props.enrollment.progress >= 50) return '#E6A23C'
-  return '#409EFF'
-})
+const categories = computed(() => courseStore.categories)
 
 /**
  * 이벤트 핸들러
  */
-const handleContinue = () => {
-  emit('continue', props.enrollment)
+const handleCardClick = () => {
+  router.push(`/courses/${props.course.id}`)
 }
 
-const handleViewCertificate = () => {
-  emit('view-certificate', props.enrollment)
-}
-
-const handleMenuCommand = async (command: string) => {
-  switch (command) {
-    case 'view-course':
-      // TODO: 강의 상세 페이지로 이동
-      break
-    case 'pause':
-      await handlePause()
-      break
-    case 'resume':
-      await handleResume()
-      break
-    case 'certificate':
-      handleViewCertificate()
-      break
-    case 'remove':
-      await handleRemove()
-      break
-  }
-}
-
-const handlePause = async () => {
+const handleEnroll = async () => {
   try {
-    await ElMessageBox.confirm(
-      '강의를 일시정지하시겠습니까?',
-      '강의 일시정지',
-      {
-        confirmButtonText: '일시정지',
-        cancelButtonText: '취소',
-        type: 'warning'
-      }
-    )
-    emit('pause', props.enrollment)
-  } catch {
-    // 취소
+    isEnrolling.value = true
+    emit('enroll', props.course.id)
+  } finally {
+    isEnrolling.value = false
   }
 }
 
-const handleResume = async () => {
-  emit('resume', props.enrollment)
-}
-
-const handleRemove = async () => {
-  try {
-    await ElMessageBox.confirm(
-      '정말로 이 강의를 삭제하시겠습니까?\n삭제된 강의는 복구할 수 없습니다.',
-      '강의 삭제',
-      {
-        confirmButtonText: '삭제',
-        cancelButtonText: '취소',
-        type: 'error'
-      }
-    )
-
-    // TODO: 강의 삭제 API 호출
-    ElMessage.success('강의가 삭제되었습니다.')
-
-  } catch {
-    // 취소
-  }
+const goToLecture = () => {
+  router.push(`/lectures/${props.course.id}`)
 }
 
 const handleImageError = (event: Event) => {
@@ -300,26 +164,9 @@ const handleImageError = (event: Event) => {
 /**
  * 유틸리티 함수
  */
-const formatDate = (date: Date | string): string => {
-  const dateObj = typeof date === 'string' ? new Date(date) : date
-  return new Intl.DateTimeFormat('ko-KR', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric'
-  }).format(dateObj)
-}
-
-const formatLastAccessed = (date: Date | string): string => {
-  const dateObj = typeof date === 'string' ? new Date(date) : date
-  const now = new Date()
-  const diffTime = Math.abs(now.getTime() - dateObj.getTime())
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-
-  if (diffDays === 1) return '오늘'
-  if (diffDays === 2) return '어제'
-  if (diffDays <= 7) return `${diffDays - 1}일 전`
-  if (diffDays <= 30) return `${Math.floor(diffDays / 7)}주 전`
-  return formatDate(dateObj)
+const getCategoryName = (categoryId: string): string => {
+  const category = categories.value.find(cat => cat.id === categoryId)
+  return category?.name || '기타'
 }
 
 const formatDuration = (minutes: number): string => {
@@ -331,93 +178,114 @@ const formatDuration = (minutes: number): string => {
   return remainingMinutes > 0 ? `${hours}시간 ${remainingMinutes}분` : `${hours}시간`
 }
 
-/**
- * 초기화
- */
-onMounted(async () => {
-  try {
-    // 강의 상세 정보 로드 (캐시된 정보가 있다면 사용)
-    const cachedCourse = courseStore.courses.find(c => c.id === props.enrollment.courseId)
-    if (cachedCourse) {
-      courseData.value = cachedCourse
-    } else {
-      // TODO: 개별 강의 정보 로드
-    }
-  } catch (error) {
-    console.warn('강의 정보 로드 실패:', error)
+const formatPrice = (price: number): string => {
+  return new Intl.NumberFormat('ko-KR', {
+    style: 'currency',
+    currency: 'KRW'
+  }).format(price)
+}
+
+const getDifficultyText = (difficulty: string): string => {
+  const map: Record<string, string> = {
+    beginner: '초급',
+    intermediate: '중급',
+    advanced: '고급'
   }
-})
+  return map[difficulty] || '초급'
+}
+
+const getDifficultyType = (difficulty: string): string => {
+  const map: Record<string, string> = {
+    beginner: 'success',
+    intermediate: 'warning',
+    advanced: 'danger'
+  }
+  return map[difficulty] || 'info'
+}
 </script>
 
 <style scoped>
-.my-course-card {
+.course-card {
+  cursor: pointer;
   transition: all 0.3s ease;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
-.my-course-card:hover {
-  transform: translateY(-2px);
+.course-card:hover {
+  transform: translateY(-4px);
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
-.my-course-card :deep(.el-card__body) {
+.course-card :deep(.el-card__body) {
   padding: 0;
-}
-
-.course-content {
-  display: grid;
-  grid-template-columns: 200px 1fr auto;
-  gap: 20px;
-  padding: 20px;
-  align-items: start;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .course-thumbnail {
   position: relative;
-  width: 200px;
-  height: 120px;
-  border-radius: 8px;
+  width: 100%;
+  height: 180px;
   overflow: hidden;
-  flex-shrink: 0;
+  border-radius: 4px 4px 0 0;
 }
 
 .course-thumbnail img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform 0.3s ease;
 }
 
-.progress-overlay {
+.course-card:hover .course-thumbnail img {
+  transform: scale(1.05);
+}
+
+.course-badge {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: rgba(0, 0, 0, 0.7);
-  border-radius: 50%;
-  padding: 4px;
+  top: 8px;
+  left: 8px;
+  display: flex;
+  gap: 4px;
 }
 
-.status-badge {
+.course-rating {
   position: absolute;
   top: 8px;
   right: 8px;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+}
+
+.course-rating .el-icon {
+  color: #F7BA2A;
 }
 
 .course-info {
+  padding: 16px;
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
 }
 
-.course-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 12px;
+.course-category {
+  font-size: 12px;
+  color: #409EFF;
+  font-weight: 500;
 }
 
 .course-title {
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
   color: #303133;
   margin: 0;
@@ -429,17 +297,38 @@ onMounted(async () => {
   -webkit-box-orient: vertical;
 }
 
+.course-description {
+  font-size: 14px;
+  color: #606266;
+  margin: 0;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.course-instructor {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #909399;
+}
+
 .course-meta {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 4px;
 }
 
 .meta-item {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 13px;
+  gap: 4px;
+  font-size: 12px;
   color: #909399;
 }
 
@@ -447,124 +336,68 @@ onMounted(async () => {
   font-size: 14px;
 }
 
-.progress-info {
-  margin-top: 8px;
+.course-difficulty {
+  margin-top: auto;
 }
 
-.progress-text {
+.course-footer {
+  padding: 12px 16px;
+  border-top: 1px solid #ebeef5;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
-  font-size: 14px;
+  gap: 12px;
 }
 
-.progress-text > span:first-child {
-  font-weight: 600;
-  color: #303133;
-}
-
-.lecture-progress {
-  color: #909399;
-  font-size: 13px;
-}
-
-.learning-stats {
-  display: flex;
-  gap: 16px;
-  margin-top: 8px;
-}
-
-.stat-item {
+.course-price {
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
 
-.stat-label {
+.original-price {
   font-size: 12px;
   color: #909399;
+  text-decoration: line-through;
 }
 
-.stat-value {
-  font-size: 13px;
-  color: #606266;
-  font-weight: 500;
+.current-price {
+  font-size: 16px;
+  font-weight: 600;
+  color: #F56C6C;
 }
 
-.course-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  align-items: center;
-  min-width: 140px;
-}
-
-.action-info {
-  text-align: center;
-  font-size: 12px;
-  color: #909399;
-  line-height: 1.4;
-}
-
-.enrolled-date,
-.completed-date {
-  margin-bottom: 4px;
-}
-
-.completed-date {
+.current-price.free {
   color: #67C23A;
-  font-weight: 500;
+}
+
+.course-footer .el-button {
+  flex-shrink: 0;
 }
 
 /* 반응형 디자인 */
-@media (max-width: 768px) {
-  .course-content {
-    grid-template-columns: 1fr;
-    gap: 16px;
-  }
-
+@media (max-width: 480px) {
   .course-thumbnail {
-    width: 100%;
     height: 160px;
   }
 
-  .course-header {
-    align-items: center;
-  }
-
-  .course-actions {
-    align-items: stretch;
-    min-width: auto;
-  }
-
-  .learning-stats {
-    flex-direction: column;
+  .course-meta {
     gap: 8px;
   }
 
-  .progress-text {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
-  }
-}
-
-@media (max-width: 480px) {
-  .course-content {
-    padding: 16px;
-  }
-
-  .course-thumbnail {
-    height: 140px;
-  }
-
-  .course-title {
-    font-size: 16px;
-  }
-
   .meta-item {
-    font-size: 12px;
+    font-size: 11px;
+  }
+
+  .course-footer {
+    padding: 10px 16px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .course-footer .el-button {
+    width: 100%;
   }
 }
 </style>
