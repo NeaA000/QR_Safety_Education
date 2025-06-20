@@ -7,7 +7,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/home',
     name: 'home',
-    component: () => import('@/views/HomeView.vue'),
+    component: () => import('@/views/home/HomeView.vue'),
     meta: { requiresAuth: true }
   },
   {
