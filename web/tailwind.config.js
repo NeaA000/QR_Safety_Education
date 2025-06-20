@@ -10,7 +10,7 @@ module.exports = {
       colors: {
         primary: {
           50: '#eff6ff',
-          100: '#dbeafe', 
+          100: '#dbeafe',
           200: '#bfdbfe',
           300: '#93c5fd',
           400: '#60a5fa',
@@ -36,7 +36,7 @@ module.exports = {
           600: '#dc2626',
         }
       },
-      
+
       // 폰트 설정
       fontFamily: {
         sans: [
@@ -48,7 +48,7 @@ module.exports = {
           'sans-serif'
         ]
       },
-      
+
       // 애니메이션
       animation: {
         'spin-slow': 'spin 3s linear infinite',
@@ -56,7 +56,7 @@ module.exports = {
         'fade-in': 'fadeIn 0.5s ease-in-out',
         'slide-up': 'slideUp 0.3s ease-out'
       },
-      
+
       // 키프레임
       keyframes: {
         fadeIn: {
@@ -68,7 +68,7 @@ module.exports = {
           '100%': { transform: 'translateY(0)', opacity: '1' }
         }
       },
-      
+
       // 그림자
       boxShadow: {
         'soft': '0 2px 15px -3px rgba(0, 0, 0, 0.07)',
@@ -76,10 +76,10 @@ module.exports = {
       }
     }
   },
-  
+
   // 다크모드 지원
   darkMode: 'class',
-  
+
   // 플러그인
   plugins: [
     require('@tailwindcss/forms'),
