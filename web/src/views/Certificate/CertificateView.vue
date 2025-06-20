@@ -60,8 +60,8 @@
       </div>
 
       <div v-else-if="certificates.length > 0" class="certificates-grid">
-        <div 
-          v-for="certificate in certificates" 
+        <div
+          v-for="certificate in certificates"
           :key="certificate.id"
           class="certificate-card"
         >
@@ -93,22 +93,22 @@
           </div>
 
           <div class="certificate-actions">
-            <el-button 
-              type="primary" 
+            <el-button
+              type="primary"
               size="small"
               :icon="View"
               @click="viewCertificate(certificate)"
             >
               미리보기
             </el-button>
-            <el-button 
+            <el-button
               size="small"
               :icon="Download"
               @click="downloadCertificate(certificate)"
             >
               다운로드
             </el-button>
-            <el-button 
+            <el-button
               size="small"
               :icon="Share"
               @click="shareCertificate(certificate)"
@@ -168,8 +168,8 @@
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="previewDialogVisible = false">닫기</el-button>
-          <el-button 
-            type="primary" 
+          <el-button
+            type="primary"
             @click="downloadCertificate(selectedCertificate!)"
           >
             다운로드
@@ -184,20 +184,20 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { 
-  Trophy, 
-  VideoPlay, 
-  CircleCheck, 
-  Loading, 
-  View, 
-  Download, 
+import {
+  Trophy,
+  VideoPlay,
+  CircleCheck,
+  Loading,
+  View,
+  Download,
   Share,
   Document
 } from '@element-plus/icons-vue'
-import { useLectureStore, type ExtendedLecture } from '@/stores/lectures'
-import { useAuthStore } from '@/stores/auth'
+import { useLectureStore, type ExtendedLecture } from '@/stores/lectures.ts'
+import { useAuthStore } from '@/stores/auth.ts'
 import type { Certificate } from '@/types/global'
-import nativeBridge from '@/services/native-bridge'
+import nativeBridge from '@/services/native-bridge.ts'
 
 // 스토어 및 라우터
 const router = useRouter()
@@ -561,15 +561,15 @@ onMounted(async () => {
   .certificate-view {
     padding: 16px;
   }
-  
+
   .certificates-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .certificate-actions {
     justify-content: center;
   }
-  
+
   .stat-card {
     flex-direction: column;
     text-align: center;

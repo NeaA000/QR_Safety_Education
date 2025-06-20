@@ -15,9 +15,9 @@
 
     <div class="filters">
       <!-- 3단계 카테고리 필터 -->
-      <el-select 
-        v-model="selectedMainCategory" 
-        placeholder="메인 카테고리" 
+      <el-select
+        v-model="selectedMainCategory"
+        placeholder="메인 카테고리"
         clearable
         @change="handleMainCategoryChange"
       >
@@ -30,10 +30,10 @@
         />
       </el-select>
 
-      <el-select 
+      <el-select
         v-if="selectedMainCategory && selectedMainCategory !== '전체'"
-        v-model="selectedMiddleCategory" 
-        placeholder="중간 카테고리" 
+        v-model="selectedMiddleCategory"
+        placeholder="중간 카테고리"
         clearable
         @change="handleMiddleCategoryChange"
       >
@@ -45,10 +45,10 @@
         />
       </el-select>
 
-      <el-select 
+      <el-select
         v-if="selectedMiddleCategory"
-        v-model="selectedLeafCategory" 
-        placeholder="세부 카테고리" 
+        v-model="selectedLeafCategory"
+        placeholder="세부 카테고리"
         clearable
         @change="handleLeafCategoryChange"
       >
@@ -84,8 +84,8 @@
 
     <!-- 강의 목록 -->
     <div v-else-if="filteredLectures.length > 0" class="lectures-grid">
-      <div 
-        v-for="lecture in filteredLectures" 
+      <div
+        v-for="lecture in filteredLectures"
         :key="lecture.id"
         class="lecture-card"
         @click="goToLecture(lecture)"
@@ -97,15 +97,15 @@
           </div>
           <div class="duration">{{ formatDuration(lecture.duration) }}</div>
         </div>
-        
+
         <div class="lecture-content">
           <h3>{{ lecture.title }}</h3>
           <p class="instructor">{{ lecture.instructor }}</p>
-          
+
           <div class="lecture-meta">
             <el-tag size="small" type="info">{{ lecture.level }}</el-tag>
-            <el-tag 
-              size="small" 
+            <el-tag
+              size="small"
               :type="getStatusTagType(lectureStore.getLectureStatus(lecture))"
             >
               {{ getStatusText(lectureStore.getLectureStatus(lecture)) }}
@@ -118,9 +118,9 @@
             <span v-if="lecture.middleCategory"> > {{ lecture.middleCategory }}</span>
             <span v-if="lecture.leafCategory"> > {{ lecture.leafCategory }}</span>
           </div>
-          
+
           <!-- 진도 표시 -->
-          <el-progress 
+          <el-progress
             v-if="lecture.progress && lecture.progress > 0"
             :percentage="lecture.progress"
             :stroke-width="6"
@@ -141,9 +141,9 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { Search, VideoPlay, Loading } from '@element-plus/icons-vue'
-import { useLectureStore, type LectureLevel, type LectureStatus, type ExtendedLecture } from '@/stores/lectures'
-import { useCategoryStore } from '@/stores/categoryStore'
-import type { MainCategory, MiddleCategory, LeafCategory } from '@/types/category'
+import { useLectureStore, type LectureLevel, type LectureStatus, type ExtendedLecture } from '@/stores/lectures.ts'
+import { useCategoryStore } from '@/stores/categoryStore.ts'
+import type { MainCategory, MiddleCategory, LeafCategory } from '@/types/category.ts'
 
 // 스토어 및 라우터
 const router = useRouter()
@@ -180,7 +180,7 @@ const handleMainCategoryChange = (): void => {
   // 하위 카테고리 초기화
   selectedMiddleCategory.value = ''
   selectedLeafCategory.value = ''
-  
+
   lectureStore.setFilter({
     mainCategory: selectedMainCategory.value || undefined,
     middleCategory: undefined,
@@ -191,7 +191,7 @@ const handleMainCategoryChange = (): void => {
 const handleMiddleCategoryChange = (): void => {
   // 하위 카테고리 초기화
   selectedLeafCategory.value = ''
-  
+
   lectureStore.setFilter({
     middleCategory: selectedMiddleCategory.value || undefined,
     leafCategory: undefined
@@ -219,7 +219,7 @@ const goToLecture = (lecture: ExtendedLecture): void => {
 const formatDuration = (seconds: number): string => {
   const minutes = Math.floor(seconds / 60)
   const hours = Math.floor(minutes / 60)
-  
+
   if (hours > 0) {
     return `${hours}시간 ${minutes % 60}분`
   }
@@ -250,6 +250,7 @@ const getStatusText = (status: LectureStatus): string => {
 onMounted(async () => {
   try {
     await lectureStore.initialize()
+    await categoryStore.initialize()
   } catch (error) {
     console.error('강의 목록 로드 실패:', error)
   }
@@ -416,25 +417,25 @@ onMounted(async () => {
   .lecture-list-view {
     padding: 16px;
   }
-  
+
   .header {
     flex-direction: column;
     gap: 16px;
     align-items: stretch;
   }
-  
+
   .search-bar {
     width: 100%;
   }
-  
+
   .filters {
     justify-content: center;
   }
-  
+
   .filters .el-select {
     min-width: 120px;
   }
-  
+
   .lectures-grid {
     grid-template-columns: 1fr;
     gap: 16px;
