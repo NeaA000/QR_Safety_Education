@@ -56,7 +56,7 @@ input, textarea, select {
   font-size: inherit;
 }
 
-/* 스크롤바 커스터마이징 */
+/* 스크롤바 커스터마이징 - 녹색 테마 */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -68,16 +68,16 @@ input, textarea, select {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--gray-400);
+  background: var(--color-primary);
   border-radius: var(--border-radius-sm);
   transition: var(--transition-colors);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--gray-500);
+  background: var(--color-primary-dark);
 }
 
-/* 선택 텍스트 스타일 */
+/* 선택 텍스트 스타일 - 녹색 테마 */
 ::selection {
   background-color: rgba(var(--color-primary-rgb), 0.2);
   color: var(--text-color-primary);
@@ -88,14 +88,20 @@ input, textarea, select {
   color: var(--text-color-primary);
 }
 
-/* Element Plus 커스터마이징 */
+/* Element Plus 커스터마이징 - 녹색 테마 */
 .el-card {
   border-radius: var(--card-border-radius) !important;
   border: none !important;
   box-shadow: var(--card-shadow) !important;
   background-color: var(--bg-color-page) !important;
+  transition: var(--transition-all) !important;
 }
 
+.el-card:hover {
+  box-shadow: var(--box-shadow-lg) !important;
+}
+
+/* 버튼 스타일 - 녹색 테마 */
 .el-button {
   border-radius: var(--border-radius-lg) !important;
   font-weight: var(--font-weight-medium) !important;
@@ -104,13 +110,19 @@ input, textarea, select {
 }
 
 .el-button--primary {
-  background-color: var(--color-primary) !important;
-  border-color: var(--color-primary) !important;
+  background: var(--gradient-education-primary) !important;
+  border: none !important;
+  box-shadow: var(--box-shadow-green) !important;
 }
 
 .el-button--primary:hover {
-  background-color: var(--color-primary-light) !important;
-  border-color: var(--color-primary-light) !important;
+  background: var(--gradient-education-accent) !important;
+  box-shadow: var(--box-shadow-green-lg) !important;
+  transform: translateY(-1px) !important;
+}
+
+.el-button--primary:active {
+  transform: translateY(0) !important;
 }
 
 .el-button--success {
@@ -118,9 +130,19 @@ input, textarea, select {
   border-color: var(--color-success) !important;
 }
 
+.el-button--success:hover {
+  background-color: var(--color-success-light) !important;
+  border-color: var(--color-success-light) !important;
+}
+
 .el-button--warning {
   background-color: var(--color-warning) !important;
   border-color: var(--color-warning) !important;
+}
+
+.el-button--warning:hover {
+  background-color: var(--color-warning-light) !important;
+  border-color: var(--color-warning-light) !important;
 }
 
 .el-button--danger {
@@ -128,6 +150,23 @@ input, textarea, select {
   border-color: var(--color-danger) !important;
 }
 
+.el-button--danger:hover {
+  background-color: var(--color-danger-light) !important;
+  border-color: var(--color-danger-light) !important;
+}
+
+.el-button--default {
+  background-color: var(--white) !important;
+  border-color: var(--border-color-base) !important;
+  color: var(--text-color-primary) !important;
+}
+
+.el-button--default:hover {
+  border-color: var(--color-primary) !important;
+  color: var(--color-primary) !important;
+}
+
+/* 입력 필드 스타일 - 녹색 테마 */
 .el-input__wrapper {
   border-radius: var(--border-radius-lg) !important;
   box-shadow: var(--box-shadow-xs) !important;
@@ -137,12 +176,13 @@ input, textarea, select {
 }
 
 .el-input__wrapper:hover {
-  box-shadow: var(--box-shadow-sm) !important;
+  border-color: var(--color-primary) !important;
+  box-shadow: var(--box-shadow-green) !important;
 }
 
 .el-input__wrapper.is-focus {
   border-color: var(--color-primary) !important;
-  box-shadow: 0 0 0 2px rgba(var(--color-primary-rgb), 0.2) !important;
+  box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.1) !important;
 }
 
 .el-input__inner {
@@ -153,12 +193,14 @@ input, textarea, select {
   color: var(--text-color-placeholder) !important;
 }
 
+/* 폼 라벨 스타일 */
 .el-form-item__label {
   font-weight: var(--font-weight-semibold) !important;
   color: var(--text-color-primary) !important;
   margin-bottom: var(--spacing-2) !important;
 }
 
+/* 탭 스타일 - 녹색 테마 */
 .el-tabs__header {
   margin-bottom: var(--spacing-5) !important;
 }
@@ -172,17 +214,71 @@ input, textarea, select {
   color: var(--color-primary) !important;
 }
 
+.el-tabs__active-bar {
+  background-color: var(--color-primary) !important;
+}
+
+.el-tabs__nav-wrap::after {
+  background-color: var(--border-color-light) !important;
+}
+
+/* 구분선 스타일 */
 .el-divider {
   margin: var(--spacing-6) 0 !important;
   border-color: var(--border-color-light) !important;
 }
 
+.el-divider__text {
+  background-color: var(--bg-color-page) !important;
+  color: var(--text-color-secondary) !important;
+}
+
+/* 알림 스타일 - 녹색 테마 */
 .el-alert {
   border-radius: var(--border-radius-lg) !important;
 }
 
+.el-alert--success {
+  background-color: rgba(var(--color-primary-rgb), 0.1) !important;
+  border-color: var(--color-primary) !important;
+  color: var(--color-primary-dark) !important;
+}
+
 .el-message {
   border-radius: var(--border-radius-lg) !important;
+}
+
+.el-message--success {
+  background-color: var(--color-success) !important;
+}
+
+.el-message--warning {
+  background-color: var(--color-warning) !important;
+}
+
+.el-message--error {
+  background-color: var(--color-danger) !important;
+}
+
+.el-message--info {
+  background-color: var(--color-info) !important;
+}
+
+/* 드롭다운 스타일 - 녹색 테마 */
+.el-dropdown-menu {
+  border-radius: var(--border-radius-lg) !important;
+  box-shadow: var(--box-shadow-lg) !important;
+  border: 1px solid var(--border-color-light) !important;
+}
+
+.el-dropdown-menu__item:hover {
+  background-color: rgba(var(--color-primary-rgb), 0.1) !important;
+  color: var(--color-primary) !important;
+}
+
+/* 아이콘 스타일 */
+.el-icon {
+  transition: var(--transition-colors) !important;
 }
 
 /* 유틸리티 클래스 */
@@ -213,6 +309,8 @@ input, textarea, select {
 .gap-2 { gap: var(--spacing-2); }
 .gap-3 { gap: var(--spacing-3); }
 .gap-4 { gap: var(--spacing-4); }
+.gap-5 { gap: var(--spacing-5); }
+.gap-6 { gap: var(--spacing-6); }
 
 /* 마진 유틸리티 */
 .m-0 { margin: 0; }
@@ -220,18 +318,24 @@ input, textarea, select {
 .m-2 { margin: var(--spacing-2); }
 .m-3 { margin: var(--spacing-3); }
 .m-4 { margin: var(--spacing-4); }
+.m-5 { margin: var(--spacing-5); }
+.m-6 { margin: var(--spacing-6); }
 
 .mt-0 { margin-top: 0; }
 .mt-1 { margin-top: var(--spacing-1); }
 .mt-2 { margin-top: var(--spacing-2); }
 .mt-3 { margin-top: var(--spacing-3); }
 .mt-4 { margin-top: var(--spacing-4); }
+.mt-5 { margin-top: var(--spacing-5); }
+.mt-6 { margin-top: var(--spacing-6); }
 
 .mb-0 { margin-bottom: 0; }
 .mb-1 { margin-bottom: var(--spacing-1); }
 .mb-2 { margin-bottom: var(--spacing-2); }
 .mb-3 { margin-bottom: var(--spacing-3); }
 .mb-4 { margin-bottom: var(--spacing-4); }
+.mb-5 { margin-bottom: var(--spacing-5); }
+.mb-6 { margin-bottom: var(--spacing-6); }
 
 .ml-0 { margin-left: 0; }
 .ml-1 { margin-left: var(--spacing-1); }
@@ -251,6 +355,8 @@ input, textarea, select {
 .p-2 { padding: var(--spacing-2); }
 .p-3 { padding: var(--spacing-3); }
 .p-4 { padding: var(--spacing-4); }
+.p-5 { padding: var(--spacing-5); }
+.p-6 { padding: var(--spacing-6); }
 
 .pt-0 { padding-top: 0; }
 .pt-1 { padding-top: var(--spacing-1); }
@@ -288,6 +394,7 @@ input, textarea, select {
 .rounded { border-radius: var(--border-radius-lg); }
 .rounded-sm { border-radius: var(--border-radius-sm); }
 .rounded-lg { border-radius: var(--border-radius-xl); }
+.rounded-xl { border-radius: var(--border-radius-2xl); }
 .rounded-full { border-radius: var(--border-radius-full); }
 
 /* 그림자 유틸리티 */
@@ -295,20 +402,30 @@ input, textarea, select {
 .shadow-sm { box-shadow: var(--box-shadow-sm); }
 .shadow-lg { box-shadow: var(--box-shadow-lg); }
 .shadow-xl { box-shadow: var(--box-shadow-xl); }
+.shadow-green { box-shadow: var(--box-shadow-green); }
+.shadow-green-lg { box-shadow: var(--box-shadow-green-lg); }
 .shadow-none { box-shadow: none; }
 
-/* 색상 유틸리티 */
+/* 색상 유틸리티 - 녹색 테마 */
 .text-primary { color: var(--color-primary); }
 .text-success { color: var(--color-success); }
 .text-warning { color: var(--color-warning); }
 .text-danger { color: var(--color-danger); }
 .text-info { color: var(--color-info); }
+.text-education-primary { color: var(--color-education-primary); }
+.text-education-secondary { color: var(--color-education-secondary); }
 
 .bg-primary { background-color: var(--color-primary); }
 .bg-success { background-color: var(--color-success); }
 .bg-warning { background-color: var(--color-warning); }
 .bg-danger { background-color: var(--color-danger); }
 .bg-info { background-color: var(--color-info); }
+.bg-education { background-color: var(--bg-color-education); }
+
+/* 그라데이션 유틸리티 */
+.bg-gradient-primary { background: var(--gradient-education-primary); }
+.bg-gradient-secondary { background: var(--gradient-education-secondary); }
+.bg-gradient-accent { background: var(--gradient-education-accent); }
 
 /* 위치 유틸리티 */
 .relative { position: relative; }
@@ -337,6 +454,51 @@ input, textarea, select {
 
 .safe-area-right {
   padding-right: max(var(--spacing-4), env(safe-area-inset-right));
+}
+
+/* 교육 테마 전용 클래스 */
+.education-card {
+  background: var(--white);
+  border-radius: var(--border-radius-xl);
+  box-shadow: var(--box-shadow-green);
+  border: 1px solid var(--border-color-extra-light);
+  transition: var(--transition-all);
+}
+
+.education-card:hover {
+  box-shadow: var(--box-shadow-green-lg);
+  transform: translateY(-2px);
+}
+
+.education-button {
+  background: var(--gradient-education-primary);
+  color: var(--white);
+  border: none;
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-3) var(--spacing-5);
+  font-weight: var(--font-weight-semibold);
+  transition: var(--transition-all);
+  cursor: pointer;
+}
+
+.education-button:hover {
+  background: var(--gradient-education-accent);
+  box-shadow: var(--box-shadow-green-lg);
+  transform: translateY(-1px);
+}
+
+.education-progress {
+  height: 8px;
+  background-color: var(--progress-background);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.education-progress-fill {
+  height: 100%;
+  background: var(--gradient-education-primary);
+  border-radius: 4px;
+  transition: width var(--transition-duration-base) var(--transition-timing-function);
 }
 
 /* 반응형 디자인 */
@@ -379,9 +541,15 @@ input, textarea, select {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+
+  .education-card:hover,
+  .education-button:hover,
+  .el-button--primary:hover {
+    transform: none !important;
+  }
 }
 
-/* 포커스 표시 개선 */
+/* 포커스 표시 개선 - 녹색 테마 */
 .el-input__wrapper:focus-within {
   outline: 2px solid var(--color-primary) !important;
   outline-offset: 2px !important;
@@ -419,6 +587,15 @@ input, textarea, select {
   }
 }
 
+@keyframes greenPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(var(--color-primary-rgb), 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(var(--color-primary-rgb), 0);
+  }
+}
+
 .loading-pulse {
   animation: pulse 2s var(--transition-timing-function) infinite;
 }
@@ -427,7 +604,11 @@ input, textarea, select {
   animation: spin 1s linear infinite;
 }
 
-/* 메시지 스타일 */
+.green-pulse {
+  animation: greenPulse 2s infinite;
+}
+
+/* 메시지 스타일 - 녹색 테마 */
 .error-text {
   color: var(--color-danger);
   font-size: var(--font-size-sm);
@@ -450,27 +631,6 @@ input, textarea, select {
   color: var(--color-info);
   font-size: var(--font-size-sm);
   margin-top: var(--spacing-1);
-}
-
-/* 사용자 정의 애니메이션 */
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity var(--transition-duration-base) var(--transition-timing-function);
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-
-.slide-up-enter-active,
-.slide-up-leave-active {
-  transition: transform var(--transition-duration-base) var(--transition-timing-function);
-}
-
-.slide-up-enter-from,
-.slide-up-leave-to {
-  transform: translateY(var(--spacing-5));
 }
 
 /* QR 안전교육 앱 전용 스타일 */
@@ -501,21 +661,7 @@ input, textarea, select {
   bottom: -2px;
   border: 2px solid rgba(var(--color-primary-rgb), 0.3);
   border-radius: var(--border-radius-xl);
-  animation: pulse 2s infinite;
-}
-
-.progress-bar {
-  height: 6px;
-  background-color: var(--progress-background);
-  border-radius: 3px;
-  overflow: hidden;
-}
-
-.progress-fill {
-  height: 100%;
-  background-color: var(--progress-complete-color);
-  border-radius: 3px;
-  transition: width var(--transition-duration-base) var(--transition-timing-function);
+  animation: greenPulse 2s infinite;
 }
 
 .certificate-border {
@@ -535,6 +681,27 @@ input, textarea, select {
   border-radius: var(--border-radius-xl);
 }
 
+/* 사용자 정의 애니메이션 */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity var(--transition-duration-base) var(--transition-timing-function);
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+.slide-up-enter-active,
+.slide-up-leave-active {
+  transition: transform var(--transition-duration-base) var(--transition-timing-function);
+}
+
+.slide-up-enter-from,
+.slide-up-leave-to {
+  transform: translateY(var(--spacing-5));
+}
+
 /* 인쇄 스타일 */
 @media print {
   body {
@@ -547,6 +714,11 @@ input, textarea, select {
   }
 
   .el-card {
+    box-shadow: none !important;
+    border: 1px solid #ddd !important;
+  }
+
+  .education-card {
     box-shadow: none !important;
     border: 1px solid #ddd !important;
   }
