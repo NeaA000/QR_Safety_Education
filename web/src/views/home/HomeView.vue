@@ -6,9 +6,9 @@
         <h1 class="page-title">QR 안전교육</h1>
         <el-dropdown @command="handleCommand">
           <span class="el-dropdown-link">
-            <el-avatar 
-              :src="userAvatar" 
-              :icon="UserFilled" 
+            <el-avatar
+              :src="userAvatar"
+              :icon="UserFilled"
               :size="32"
             />
             <el-icon class="el-icon--right">
@@ -40,9 +40,9 @@
       <!-- 사용자 정보 카드 -->
       <el-card class="user-info-card">
         <div class="user-info">
-          <el-avatar 
-            :src="userAvatar" 
-            :icon="UserFilled" 
+          <el-avatar
+            :src="userAvatar"
+            :icon="UserFilled"
             :size="56"
           />
           <div class="user-details">
@@ -60,7 +60,7 @@
           </el-icon>
           <h3>QR 코드로 강의 시작</h3>
           <p>QR 코드를 스캔하여 바로 강의를 시작하세요</p>
-          <el-button 
+          <el-button
             type="primary"
             size="large"
             :loading="isScanning"
@@ -102,20 +102,30 @@
       <!-- 빠른 메뉴 -->
       <div class="quick-menu">
         <el-row :gutter="16">
-          <el-col :span="12">
+          <el-col :span="8">
+            <el-card shadow="hover" @click="goToCourseEnroll" class="menu-card course-enroll">
+              <div class="menu-item">
+                <el-icon :size="32" color="#E6A23C">
+                  <Plus />
+                </el-icon>
+                <span>강의신청</span>
+              </div>
+            </el-card>
+          </el-col>
+          <el-col :span="8">
             <el-card shadow="hover" @click="goToLectures" class="menu-card">
               <div class="menu-item">
                 <el-icon :size="32" color="#409EFF">
                   <VideoPlay />
                 </el-icon>
-                <span>강의 목록</span>
+                <span>내 강의</span>
               </div>
             </el-card>
           </el-col>
-          <el-col :span="12">
+          <el-col :span="8">
             <el-card shadow="hover" @click="goToCertificates" class="menu-card">
               <div class="menu-item">
-                <el-icon :size="32" color="#E6A23C">
+                <el-icon :size="32" color="#67C23A">
                   <Trophy />
                 </el-icon>
                 <span>수료증</span>
@@ -125,6 +135,40 @@
         </el-row>
       </div>
 
+      <!-- 신규 강의 추천 카드 -->
+      <el-card class="recommended-courses" v-if="recommendedCourses.length > 0">
+        <template #header>
+          <div class="card-header">
+            <span>추천 강의</span>
+            <el-link type="primary" @click="goToCourseEnroll">전체보기</el-link>
+          </div>
+        </template>
+
+        <div class="course-list">
+          <div
+            v-for="course in recommendedCourses"
+            :key="course.id"
+            class="course-item"
+            @click="goToCourseDetail(course.id)"
+          >
+            <div class="course-thumbnail">
+              <img :src="course.thumbnail || '/default-course.jpg'" :alt="course.title" />
+              <div class="course-category">{{ course.category }}</div>
+            </div>
+            <div class="course-info">
+              <h4>{{ course.title }}</h4>
+              <p>{{ course.description }}</p>
+              <div class="course-meta">
+                <span class="duration">{{ course.duration }}분</span>
+                <span class="difficulty">{{ getDifficultyText(course.difficulty) }}</span>
+                <span class="price" v-if="course.price > 0">{{ formatPrice(course.price) }}</span>
+                <span class="price free" v-else>무료</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </el-card>
+
       <!-- 최근 학습 내역 -->
       <el-card class="recent-activities">
         <template #header>
@@ -133,10 +177,10 @@
             <el-link type="primary" @click="goToLectures">전체보기</el-link>
           </div>
         </template>
-        
+
         <div v-if="recentLecturesData.length > 0">
-          <div 
-            v-for="lecture in recentLecturesData" 
+          <div
+            v-for="lecture in recentLecturesData"
             :key="lecture.id"
             class="activity-item"
             @click="goToLecture(lecture.id)"
@@ -145,14 +189,18 @@
               <h4>{{ lecture.title }}</h4>
               <p>진행률: {{ lecture.progress }}%</p>
             </div>
-            <el-progress 
-              :percentage="lecture.progress" 
+            <el-progress
+              :percentage="lecture.progress"
               :stroke-width="6"
               :color="lecture.progress === 100 ? '#67C23A' : '#409EFF'"
             />
           </div>
         </div>
-        <el-empty v-else description="아직 학습한 강의가 없습니다" />
+        <el-empty v-else description="아직 학습한 강의가 없습니다">
+          <el-button type="primary" @click="goToCourseEnroll">
+            강의 신청하러 가기
+          </el-button>
+        </el-empty>
       </el-card>
     </div>
   </div>
@@ -162,25 +210,28 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { 
-  User, 
-  UserFilled, 
-  Setting, 
-  SwitchButton, 
+import {
+  User,
+  UserFilled,
+  Setting,
+  SwitchButton,
   CameraFilled,
-  Camera,  // Scan 대신 Camera 사용
+  Camera,
   VideoPlay,
   Trophy,
-  ArrowDown
+  ArrowDown,
+  Plus
 } from '@element-plus/icons-vue'
 import { useAuthStore } from '@/stores/auth'
 import { useLectureStore } from '@/stores/lectures'
+import { useCourseStore } from '@/stores/courses.ts'
 import nativeBridge from '@/services/native-bridge'
 
 // 스토어 및 라우터
 const router = useRouter()
 const authStore = useAuthStore()
 const lectureStore = useLectureStore()
+const courseStore = useCourseStore()
 
 // 상태
 const isScanning = ref(false)
@@ -191,6 +242,7 @@ const userEmail = computed(() => authStore.user?.email || '')
 const userAvatar = computed(() => authStore.user?.photoURL || '')
 const lectureStats = computed(() => lectureStore.lectureStats)
 const recentLecturesData = computed(() => lectureStore.recentLectures)
+const recommendedCourses = computed(() => courseStore.recommendedCourses.slice(0, 3))
 
 /**
  * QR 코드 스캔
@@ -198,7 +250,7 @@ const recentLecturesData = computed(() => lectureStore.recentLectures)
 const handleQRScan = async (): Promise<void> => {
   try {
     isScanning.value = true
-    
+
     // 카메라 권한 확인
     if (nativeBridge.isNativeApp()) {
       const hasPermission = await nativeBridge.requestCameraPermission()
@@ -210,11 +262,11 @@ const handleQRScan = async (): Promise<void> => {
 
     // QR 스캔 실행
     const result = await nativeBridge.scanQR()
-    
+
     if (result) {
       try {
         const qrData = JSON.parse(result)
-        
+
         // QR 데이터 검증
         if (qrData.type === 'lecture' && qrData.lectureId) {
           // 강의 페이지로 이동
@@ -228,7 +280,7 @@ const handleQRScan = async (): Promise<void> => {
         ElMessage.error('QR 코드 형식이 올바르지 않습니다.')
       }
     }
-    
+
   } catch (error) {
     console.error('QR 스캔 오류:', error)
     ElMessage.error('QR 스캔에 실패했습니다.')
@@ -245,11 +297,11 @@ const handleCommand = async (command: string): Promise<void> => {
     case 'profile':
       await router.push('/profile')
       break
-      
+
     case 'settings':
       ElMessage.info('설정 기능 준비 중입니다.')
       break
-      
+
     case 'logout':
       await handleLogout()
       break
@@ -270,11 +322,11 @@ const handleLogout = async (): Promise<void> => {
         type: 'warning'
       }
     )
-    
+
     await authStore.logout()
     await router.replace('/login')
     ElMessage.success('로그아웃되었습니다.')
-    
+
   } catch (error) {
     // 취소한 경우 - 아무것도 하지 않음
   }
@@ -283,6 +335,10 @@ const handleLogout = async (): Promise<void> => {
 /**
  * 페이지 이동
  */
+const goToCourseEnroll = (): void => {
+  router.push('/courses')
+}
+
 const goToLectures = (): void => {
   router.push('/lectures')
 }
@@ -295,13 +351,39 @@ const goToLecture = (id: string): void => {
   router.push(`/lectures/${id}/watch`)
 }
 
+const goToCourseDetail = (id: string): void => {
+  router.push(`/courses/${id}`)
+}
+
+/**
+ * 유틸리티 함수
+ */
+const getDifficultyText = (difficulty: string): string => {
+  const map: Record<string, string> = {
+    beginner: '초급',
+    intermediate: '중급',
+    advanced: '고급'
+  }
+  return map[difficulty] || '초급'
+}
+
+const formatPrice = (price: number): string => {
+  return new Intl.NumberFormat('ko-KR', {
+    style: 'currency',
+    currency: 'KRW'
+  }).format(price)
+}
+
 /**
  * 초기화
  */
 onMounted(async () => {
   try {
-    // 강의 스토어 초기화
-    await lectureStore.initialize()
+    // 스토어 초기화
+    await Promise.all([
+      lectureStore.initialize(),
+      courseStore.loadRecommendedCourses()
+    ])
   } catch (error) {
     console.error('홈 화면 초기화 실패:', error)
     ElMessage.error('데이터를 불러오는데 실패했습니다.')
@@ -444,10 +526,20 @@ onMounted(async () => {
 .menu-card {
   cursor: pointer;
   transition: transform 0.2s;
+  margin-bottom: 16px;
 }
 
 .menu-card:hover {
   transform: translateY(-2px);
+}
+
+.menu-card.course-enroll {
+  background: linear-gradient(135deg, #E6A23C 0%, #F56C6C 100%);
+  color: white;
+}
+
+.menu-card.course-enroll .menu-item span {
+  color: white;
 }
 
 .menu-item {
@@ -462,6 +554,110 @@ onMounted(async () => {
   font-size: 14px;
   font-weight: 600;
   color: #303133;
+}
+
+.recommended-courses {
+  margin-bottom: 20px;
+}
+
+.course-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.course-item {
+  display: flex;
+  gap: 16px;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.course-item:hover {
+  background: #e9ecef;
+  transform: translateY(-1px);
+}
+
+.course-thumbnail {
+  position: relative;
+  width: 120px;
+  height: 80px;
+  border-radius: 6px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.course-thumbnail img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.course-category {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+}
+
+.course-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.course-info h4 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #303133;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.course-info p {
+  font-size: 14px;
+  color: #606266;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.course-meta {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: auto;
+}
+
+.course-meta span {
+  font-size: 12px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: #e9ecef;
+  color: #495057;
+}
+
+.course-meta .price {
+  background: #E6A23C;
+  color: white;
+  font-weight: 600;
+}
+
+.course-meta .price.free {
+  background: #67C23A;
 }
 
 .recent-activities {
@@ -513,13 +709,23 @@ onMounted(async () => {
   .main-content {
     padding: 16px;
   }
-  
+
   .quick-menu .el-col {
     margin-bottom: 16px;
   }
-  
+
   .stats-card .el-col {
     margin-bottom: 16px;
+  }
+
+  .course-item {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .course-thumbnail {
+    width: 100%;
+    height: 160px;
   }
 }
 </style>

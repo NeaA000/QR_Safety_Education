@@ -13,59 +13,85 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/login',
     name: 'login',
-    component: () => import('@/views/LoginView.vue'),
+    component: () => import('@/views/login/LoginView.vue'),
     meta: { guest: true }
   },
   {
-  path: '/',
-  redirect: '/login'
+    path: '/',
+    redirect: '/login'
   },
   {
     path: '/register',
     name: 'register',
-    component: () => import('@/views/RegisterView.vue'),
+    component: () => import('@/views/login/RegisterView.vue'),
     meta: { guest: true }
   },
+  // 강의 신청 관련 라우트
+  {
+    path: '/courses',
+    name: 'courses',
+    component: () => import('@/views/course/CourseListView.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/courses/:id',
+    name: 'course-detail',
+    component: () => import('@/views/course/CourseDetailView.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/courses/:id/enroll',
+    name: 'course-enroll',
+    component: () => import('@/views/course/CourseEnrollView.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/my-courses',
+    name: 'my-courses',
+    component: () => import('@/components/course/MyCoursesView.vue'),
+    meta: { requiresAuth: true }
+  },
+  // 기존 강의 관련 라우트 (수강 중인 강의)
   {
     path: '/lectures',
     name: 'lectures',
-    component: () => import('@/views/LectureListView.vue'),
+    component: () => import('@/views/lecture/LectureListView.vue'),
     meta: { requiresAuth: true }
   },
   {
     path: '/lectures/:id',
     name: 'lecture-detail',
-    component: () => import('@/views/LectureDetailView.vue'),
+    component: () => import('@/views/lecture/LectureDetailView.vue'),
     meta: { requiresAuth: true }
   },
   {
     path: '/lectures/:id/watch',
     name: 'lecture-watch',
-    component: () => import('@/views/LectureWatchView.vue'),
+    component: () => import('@/views/lecture/LectureWatchView.vue'),
     meta: { requiresAuth: true }
   },
   {
     path: '/certificates',
     name: 'certificates',
-    component: () => import('@/views/CertificateListView.vue'),
+    component: () => import('@/views/Certificate/CertificateListView.vue'),
     meta: { requiresAuth: true }
   },
   {
     path: '/certificates/:id',
     name: 'certificate-detail',
-    component: () => import('@/views/CertificateDetailView.vue'),
+    component: () => import('@/views/Certificate/CertificateDetailView.vue'),
     meta: { requiresAuth: true }
   },
   {
     path: '/profile',
     name: 'profile',
-    component: () => import('@/views/ProfileView.vue'),
+    component: () => import('@/views/Profile/ProfileView.vue'),
     meta: { requiresAuth: true }
   },
   {
     path: '/profile/edit',
     name: 'profile-edit',
-    component: () => import('@/views/ProfileEditView.vue'),
+    component: () => import('@/views/Profile/ProfileEditView.vue'),
     meta: { requiresAuth: true }
   },
   {
@@ -90,6 +116,11 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/admin/LecturesView.vue')
       },
       {
+        path: 'courses',
+        name: 'admin-courses',
+        component: () => import('@/views/admin/CoursesView.vue')
+      },
+      {
         path: 'certificates',
         name: 'admin-certificates',
         component: () => import('@/views/admin/CertificatesView.vue')
@@ -104,7 +135,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/qr-scan',
     name: 'qr-scan',
-    component: () => import('@/views/QRScanView.vue'),
+    component: () => import('@/views/QR/QRScanView.vue'),
     meta: { requiresAuth: true }
   },
   {
@@ -139,7 +170,7 @@ const router = createRouter({
 // 전역 네비게이션 가드
 router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore()
-  
+
   // 인증 정보 초기화
   if (!authStore.user) {
     authStore.initializeAuth()
