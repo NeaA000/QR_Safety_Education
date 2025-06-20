@@ -4,7 +4,7 @@
     <div class="home-header">
       <div class="header-content">
         <div class="logo-section">
-          <el-icon :size="32" color="var(--color-brand-primary)">
+          <el-icon :size="32" color="#409EFF">
             <Lock />
           </el-icon>
           <h1 class="app-title">QR 안전교육</h1>
@@ -72,7 +72,6 @@
                 size="large"
                 @click="$router.push('/auth/register?upgrade=true')"
                 :icon="UserFilled"
-                class="upgrade-button"
               >
                 회원가입하고 모든 기능 이용하기
               </el-button>
@@ -86,9 +85,9 @@
         <h3 class="section-title">빠른 시작</h3>
         <div class="action-grid">
           <!-- QR 스캔 -->
-          <el-card class="action-card qr-scan-card" @click="handleQRScan">
+          <el-card class="action-card" @click="handleQRScan">
             <div class="action-content">
-              <el-icon :size="40" color="var(--color-brand-primary)">
+              <el-icon :size="40" color="#409EFF">
                 <Camera />
               </el-icon>
               <h4>QR 스캔</h4>
@@ -97,9 +96,9 @@
           </el-card>
 
           <!-- 강의 목록 -->
-          <el-card class="action-card courses-card" @click="$router.push('/courses')">
+          <el-card class="action-card" @click="$router.push('/courses')">
             <div class="action-content">
-              <el-icon :size="40" color="var(--color-brand-secondary)">
+              <el-icon :size="40" color="#67C23A">
                 <Document />
               </el-icon>
               <h4>강의 목록</h4>
@@ -110,11 +109,11 @@
           <!-- 내 강의 (로그인된 사용자만) -->
           <el-card
             v-if="authStore.isLoggedIn"
-            class="action-card my-courses-card"
-            @click="$router.push('/courses/my')"
+            class="action-card"
+            @click="$router.push('/my-courses')"
           >
             <div class="action-content">
-              <el-icon :size="40" color="var(--color-brand-primary-dark)">
+              <el-icon :size="40" color="#E6A23C">
                 <Collection />
               </el-icon>
               <h4>내 강의</h4>
@@ -125,11 +124,11 @@
           <!-- 수료증 (로그인된 사용자만) -->
           <el-card
             v-if="authStore.isLoggedIn"
-            class="action-card certificates-card"
+            class="action-card"
             @click="$router.push('/certificates')"
           >
             <div class="action-content">
-              <el-icon :size="40" color="var(--color-warning)">
+              <el-icon :size="40" color="#F56C6C">
                 <Trophy />
               </el-icon>
               <h4>수료증</h4>
@@ -162,7 +161,7 @@
             </div>
           </div>
           <div v-else class="no-activity">
-            <el-icon :size="60" color="var(--color-brand-secondary)">
+            <el-icon :size="60" color="#C0C4CC">
               <Calendar />
             </el-icon>
             <p>아직 활동 내역이 없습니다.</p>
@@ -175,9 +174,9 @@
       <div v-if="authStore.isLoggedIn && !authStore.isAnonymous" class="stats-section">
         <h3 class="section-title">나의 학습 현황</h3>
         <div class="stats-grid">
-          <el-card class="stat-card courses-stat">
+          <el-card class="stat-card">
             <div class="stat-content">
-              <el-icon :size="32" color="var(--color-brand-secondary)">
+              <el-icon :size="32" color="#409EFF">
                 <Document />
               </el-icon>
               <div class="stat-info">
@@ -187,9 +186,9 @@
             </div>
           </el-card>
 
-          <el-card class="stat-card completed-stat">
+          <el-card class="stat-card">
             <div class="stat-content">
-              <el-icon :size="32" color="var(--color-brand-primary)">
+              <el-icon :size="32" color="#67C23A">
                 <Trophy />
               </el-icon>
               <div class="stat-info">
@@ -199,9 +198,9 @@
             </div>
           </el-card>
 
-          <el-card class="stat-card certificates-stat">
+          <el-card class="stat-card">
             <div class="stat-content">
-              <el-icon :size="32" color="var(--color-warning)">
+              <el-icon :size="32" color="#E6A23C">
                 <Medal />
               </el-icon>
               <div class="stat-info">
@@ -211,9 +210,9 @@
             </div>
           </el-card>
 
-          <el-card class="stat-card hours-stat">
+          <el-card class="stat-card">
             <div class="stat-content">
-              <el-icon :size="32" color="var(--color-brand-secondary-dark)">
+              <el-icon :size="32" color="#F56C6C">
                 <Clock />
               </el-icon>
               <div class="stat-info">
@@ -259,7 +258,7 @@ const recentActivities = ref([
     title: '화재 안전 교육 완료',
     time: '2시간 전',
     icon: 'Trophy',
-    iconColor: 'var(--color-brand-primary)',
+    iconColor: '#67C23A',
     type: 'course_complete',
     courseId: '1'
   },
@@ -268,7 +267,7 @@ const recentActivities = ref([
     title: '작업장 안전 수칙 시청',
     time: '1일 전',
     icon: 'Document',
-    iconColor: 'var(--color-brand-secondary)',
+    iconColor: '#409EFF',
     type: 'lesson_watch',
     lessonId: '5'
   },
@@ -277,7 +276,7 @@ const recentActivities = ref([
     title: '안전모 착용법 강의 신청',
     time: '3일 전',
     icon: 'Collection',
-    iconColor: 'var(--color-brand-primary-dark)',
+    iconColor: '#E6A23C',
     type: 'course_enroll',
     courseId: '3'
   }
@@ -342,11 +341,13 @@ const handleQRScan = () => {
 const handleActivityClick = (activity: any) => {
   switch (activity.type) {
     case 'course_complete':
+      router.push(`/certificates`)
+      break
     case 'course_enroll':
-      router.push(`/courses/${activity.courseId}`)
+      router.push(`/my-courses/applied`)
       break
     case 'lesson_watch':
-      ElMessage.info('해당 강의로 이동합니다.')
+      router.push(`/my-courses/progress`)
       break
     default:
       ElMessage.info('상세 정보를 확인합니다.')
@@ -359,6 +360,9 @@ const loadUserStats = async () => {
 
   try {
     // TODO: 실제 API 호출로 사용자 통계 데이터 로드
+    // const stats = await userStatsAPI.getUserStats()
+    // Object.assign(userStats, stats)
+
     console.log('사용자 통계 로드됨:', userStats)
   } catch (error) {
     console.error('사용자 통계 로드 실패:', error)
@@ -371,6 +375,9 @@ const loadRecentActivities = async () => {
 
   try {
     // TODO: 실제 API 호출로 최근 활동 데이터 로드
+    // const activities = await userActivityAPI.getRecentActivities()
+    // recentActivities.value = activities
+
     console.log('최근 활동 로드됨:', recentActivities.value)
   } catch (error) {
     console.error('최근 활동 로드 실패:', error)
@@ -387,22 +394,21 @@ onMounted(() => {
 <style scoped>
 .home-container {
   min-height: 100vh;
-  background: var(--gradient-background);
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
 }
 
 .home-header {
-  background: var(--header-background);
-  box-shadow: var(--box-shadow-company);
+  background: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   position: sticky;
   top: 0;
-  z-index: var(--z-index-sticky);
-  border-bottom: 1px solid var(--border-color-light);
+  z-index: 100;
 }
 
 .header-content {
-  max-width: var(--container-max-width);
+  max-width: 1200px;
   margin: 0 auto;
-  padding: var(--spacing-4) var(--spacing-5);
+  padding: 16px 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -411,47 +417,41 @@ onMounted(() => {
 .logo-section {
   display: flex;
   align-items: center;
-  gap: var(--spacing-3);
+  gap: 12px;
 }
 
 .app-title {
-  font-size: var(--font-size-2xl);
-  font-weight: var(--font-weight-bold);
-  color: var(--text-color-primary);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #303133;
   margin: 0;
-  background: var(--gradient-company);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
 }
 
 .user-section {
   display: flex;
   align-items: center;
-  gap: var(--spacing-3);
+  gap: 12px;
 }
 
 .welcome-text {
-  font-weight: var(--font-weight-medium);
-  color: var(--text-color-regular);
+  font-weight: 500;
+  color: #606266;
 }
 
 .main-content {
-  max-width: var(--container-max-width);
+  max-width: 1200px;
   margin: 0 auto;
-  padding: var(--spacing-5);
+  padding: 20px;
 }
 
 .welcome-section {
-  margin-bottom: var(--spacing-8);
+  margin-bottom: 32px;
 }
 
 .welcome-card {
-  background: var(--gradient-company);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border: none;
-  border-radius: var(--border-radius-2xl);
-  overflow: hidden;
-  box-shadow: var(--box-shadow-company);
+  color: white;
 }
 
 :deep(.welcome-card .el-card__body) {
@@ -460,219 +460,136 @@ onMounted(() => {
 
 .welcome-content {
   text-align: center;
-  padding: var(--spacing-10) var(--spacing-5);
-  color: var(--white);
+  padding: 40px 20px;
 }
 
 .welcome-title {
-  font-size: var(--font-size-4xl);
-  font-weight: var(--font-weight-bold);
-  margin: 0 0 var(--spacing-4) 0;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0 0 16px 0;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
 
 .welcome-description {
-  font-size: var(--font-size-lg);
-  opacity: 0.95;
-  margin: 0 0 var(--spacing-6) 0;
-  line-height: var(--line-height-lg);
-  max-width: 600px;
-  margin-left: auto;
-  margin-right: auto;
+  font-size: 1.1rem;
+  opacity: 0.9;
+  margin: 0 0 24px 0;
+  line-height: 1.6;
 }
 
 .upgrade-section {
-  margin-top: var(--spacing-6);
-}
-
-.upgrade-button {
-  background: var(--white) !important;
-  color: var(--color-brand-primary) !important;
-  border: none !important;
-  font-weight: var(--font-weight-semibold) !important;
-}
-
-.upgrade-button:hover {
-  background: var(--gray-50) !important;
-  transform: translateY(-1px);
+  margin-top: 24px;
 }
 
 .section-title {
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-semibold);
-  color: var(--text-color-primary);
-  margin: 0 0 var(--spacing-4) 0;
-  padding-bottom: var(--spacing-2);
-  border-bottom: 3px solid var(--color-brand-primary);
-  display: inline-block;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #303133;
+  margin: 0 0 16px 0;
 }
 
 .action-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: var(--spacing-5);
-  margin-bottom: var(--spacing-8);
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  margin-bottom: 32px;
 }
 
 .action-card {
   cursor: pointer;
-  transition: var(--transition-all);
+  transition: all 0.3s ease;
   border: none;
-  border-radius: var(--border-radius-xl);
-  background: var(--white);
-  box-shadow: var(--box-shadow-base);
-  overflow: hidden;
-  position: relative;
-}
-
-.action-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: var(--color-brand-primary);
-  transform: scaleX(0);
-  transition: var(--transition-transform);
 }
 
 .action-card:hover {
   transform: translateY(-4px);
-  box-shadow: var(--box-shadow-company);
-}
-
-.action-card:hover::before {
-  transform: scaleX(1);
-}
-
-.qr-scan-card::before {
-  background: var(--color-brand-primary);
-}
-
-.courses-card::before {
-  background: var(--color-brand-secondary);
-}
-
-.my-courses-card::before {
-  background: var(--color-brand-primary-dark);
-}
-
-.certificates-card::before {
-  background: var(--color-warning);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
 }
 
 .action-content {
   text-align: center;
-  padding: var(--spacing-6);
+  padding: 20px;
 }
 
 .action-content h4 {
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-semibold);
-  margin: var(--spacing-4) 0 var(--spacing-2) 0;
-  color: var(--text-color-primary);
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 16px 0 8px 0;
+  color: #303133;
 }
 
 .action-content p {
-  color: var(--text-color-regular);
+  color: #606266;
   margin: 0;
-  font-size: var(--font-size-sm);
-  line-height: var(--line-height-base);
+  font-size: 14px;
 }
 
 .recent-activity,
 .stats-section {
-  margin-bottom: var(--spacing-8);
+  margin-bottom: 32px;
 }
 
 .activity-card {
-  border-radius: var(--border-radius-xl);
-  box-shadow: var(--box-shadow-base);
-  border: 1px solid var(--border-color-light);
-}
-
-:deep(.activity-card .el-card__body) {
-  padding: var(--spacing-6);
+  padding: 20px;
 }
 
 .activity-list {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-4);
+  gap: 16px;
 }
 
 .activity-item {
   display: flex;
   align-items: center;
-  gap: var(--spacing-3);
-  padding: var(--spacing-4);
-  background: var(--bg-color-education);
-  border-radius: var(--border-radius-lg);
-  transition: var(--transition-colors);
-  border: 1px solid var(--border-color-extra-light);
-}
-
-.activity-item:hover {
-  background: var(--gray-50);
-  border-color: var(--border-color-light);
+  gap: 12px;
+  padding: 12px;
+  background: #f8f9fa;
+  border-radius: 8px;
 }
 
 .activity-content {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-1);
+  gap: 4px;
 }
 
 .activity-title {
-  font-weight: var(--font-weight-medium);
-  color: var(--text-color-primary);
-  font-size: var(--font-size-base);
+  font-weight: 500;
+  color: #303133;
 }
 
 .activity-time {
-  font-size: var(--font-size-xs);
-  color: var(--text-color-secondary);
+  font-size: 12px;
+  color: #909399;
 }
 
 .no-activity {
   text-align: center;
-  padding: var(--spacing-10) var(--spacing-5);
-  color: var(--text-color-secondary);
+  padding: 40px 20px;
+  color: #909399;
 }
 
 .no-activity p {
-  margin: var(--spacing-2) 0;
-  font-size: var(--font-size-base);
+  margin: 8px 0;
 }
 
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: var(--spacing-5);
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
 }
 
 .stat-card {
-  border-radius: var(--border-radius-xl);
-  box-shadow: var(--box-shadow-base);
-  transition: var(--transition-all);
-  border: 1px solid var(--border-color-light);
-}
-
-.stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--box-shadow-company);
-}
-
-:deep(.stat-card .el-card__body) {
-  padding: var(--spacing-6);
+  padding: 20px;
+  border: none;
 }
 
 .stat-content {
   display: flex;
   align-items: center;
-  gap: var(--spacing-4);
+  gap: 16px;
 }
 
 .stat-info {
@@ -680,77 +597,55 @@ onMounted(() => {
 }
 
 .stat-number {
-  font-size: var(--font-size-4xl);
-  font-weight: var(--font-weight-bold);
-  color: var(--text-color-primary);
+  font-size: 2rem;
+  font-weight: 700;
+  color: #303133;
   line-height: 1;
-  margin-bottom: var(--spacing-1);
 }
 
 .stat-label {
-  font-size: var(--font-size-sm);
-  color: var(--text-color-regular);
-  font-weight: var(--font-weight-medium);
-}
-
-/* 통계 카드별 특별한 스타일 (회사 컬러) */
-.courses-stat {
-  border-left: 4px solid var(--color-brand-secondary);
-}
-
-.completed-stat {
-  border-left: 4px solid var(--color-brand-primary);
-}
-
-.certificates-stat {
-  border-left: 4px solid var(--color-warning);
-}
-
-.hours-stat {
-  border-left: 4px solid var(--color-brand-secondary-dark);
+  font-size: 14px;
+  color: #606266;
+  margin-top: 4px;
 }
 
 /* 반응형 디자인 */
 @media (max-width: 768px) {
   .header-content {
-    padding: var(--spacing-3) var(--spacing-4);
+    padding: 12px 16px;
   }
 
   .app-title {
-    font-size: var(--font-size-xl);
+    font-size: 1.25rem;
   }
 
   .welcome-title {
-    font-size: var(--font-size-3xl);
+    font-size: 1.5rem;
   }
 
   .welcome-description {
-    font-size: var(--font-size-base);
+    font-size: 1rem;
   }
 
   .main-content {
-    padding: var(--spacing-4);
+    padding: 16px;
   }
 
   .action-grid {
     grid-template-columns: 1fr;
-    gap: var(--spacing-4);
+    gap: 16px;
   }
 
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: var(--spacing-4);
-  }
-
-  .welcome-content {
-    padding: var(--spacing-6) var(--spacing-4);
+    gap: 16px;
   }
 }
 
 @media (max-width: 480px) {
   .header-content {
     flex-direction: column;
-    gap: var(--spacing-3);
+    gap: 12px;
     align-items: stretch;
   }
 
@@ -763,26 +658,7 @@ onMounted(() => {
   }
 
   .welcome-content {
-    padding: var(--spacing-5) var(--spacing-3);
-  }
-
-  .stat-number {
-    font-size: var(--font-size-3xl);
-  }
-}
-
-/* 접근성 개선 */
-@media (prefers-reduced-motion: reduce) {
-  .action-card {
-    transition: none;
-  }
-
-  .action-card:hover {
-    transform: none;
-  }
-
-  .upgrade-button:hover {
-    transform: none;
+    padding: 24px 16px;
   }
 }
 </style>

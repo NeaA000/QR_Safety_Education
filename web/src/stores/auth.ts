@@ -57,6 +57,28 @@ export interface LoginData {
   password: string
 }
 
+// 🔧 공통 유틸 함수: Firebase에 사용자 정보 저장
+const saveUserProfile = async (uid: string, data: Partial<UserProfile>): Promise<void> => {
+  try {
+    const db = getFirebaseFirestore()
+    const userRef = doc(db, 'users', uid)
+
+    const dataToSave = {
+      ...data,
+      uid,
+      lastLoginAt: serverTimestamp(),
+      lastUpdated: serverTimestamp(),
+      ...(data.joinedAt ? {} : { joinedAt: serverTimestamp() })
+    }
+
+    await setDoc(userRef, dataToSave, { merge: true })
+    console.log('✅ 사용자 프로필 저장 완료:', uid)
+  } catch (error) {
+    console.error('❌ 사용자 프로필 저장 실패:', error)
+    throw new Error('사용자 정보 저장에 실패했습니다.')
+  }
+}
+
 export const useAuthStore = defineStore('auth', () => {
   // 상태 변수들
   const user = ref<User | null>(null)
@@ -132,27 +154,6 @@ export const useAuthStore = defineStore('auth', () => {
     return validateEmail(data.email) || validatePassword(data.password)
   }
 
-  // 🔐 Firestore에 사용자 정보 저장
-  const saveUserToFirestore = async (uid: string, userData: Partial<UserProfile>) => {
-    try {
-      const db = getFirebaseFirestore()
-      const userRef = doc(db, 'users', uid)
-
-      const dataToSave = {
-        ...userData,
-        uid,
-        lastUpdated: serverTimestamp(),
-        ...(userData.joinedAt ? {} : { joinedAt: serverTimestamp() })
-      }
-
-      await setDoc(userRef, dataToSave, { merge: true })
-      console.log('✅ 사용자 정보 Firestore 저장 완료:', uid)
-    } catch (error) {
-      console.error('❌ 사용자 정보 저장 실패:', error)
-      throw new Error('사용자 정보 저장에 실패했습니다.')
-    }
-  }
-
   // 🔐 Firestore에서 사용자 정보 로드
   const loadUserProfile = async (uid: string): Promise<UserProfile | null> => {
     try {
@@ -197,7 +198,7 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  // ✅ 이메일 로그인 (LoginView.vue에서 호출하는 메서드명과 일치)
+  // ✅ 이메일 로그인
   const login = async (data: LoginData): Promise<boolean> => {
     try {
       isLoading.value = true
@@ -219,10 +220,8 @@ export const useAuthStore = defineStore('auth', () => {
       )
 
       if (credential.user) {
-        // 로그인 시간 업데이트
-        await saveUserToFirestore(credential.user.uid, {
-          lastLoginAt: new Date()
-        })
+        // 로그인 시간만 업데이트
+        await saveUserProfile(credential.user.uid, {})
 
         console.log('✅ 이메일 로그인 성공:', credential.user.uid)
         return true
@@ -274,7 +273,7 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  // ✅ Google 로그인 (LoginView.vue에서 호출하는 메서드)
+  // ✅ Google 로그인
   const signInWithGoogle = async (): Promise<boolean> => {
     try {
       isLoading.value = true
@@ -293,25 +292,20 @@ export const useAuthStore = defineStore('auth', () => {
       const result = await signInWithPopup(auth, provider)
 
       if (result.user) {
+        // 기존 사용자인지 확인
+        const existingProfile = await loadUserProfile(result.user.uid)
+
         // 사용자 정보 저장/업데이트
-        const userProfile: Partial<UserProfile> = {
+        await saveUserProfile(result.user.uid, {
           email: result.user.email || undefined,
           name: result.user.displayName || '구글 사용자',
           role: 'user',
           provider: 'google',
-          lastLoginAt: new Date(),
           privacyConsent: true,
           privacyConsentDate: new Date(),
-          accessLevel: 'standard'
-        }
-
-        // 기존 사용자인지 확인
-        const existingProfile = await loadUserProfile(result.user.uid)
-        if (!existingProfile) {
-          userProfile.joinedAt = new Date()
-        }
-
-        await saveUserToFirestore(result.user.uid, userProfile)
+          accessLevel: 'standard',
+          ...(existingProfile ? {} : { joinedAt: new Date() })
+        })
 
         console.log('✅ Google 로그인 성공:', result.user.uid)
         return true
@@ -369,7 +363,7 @@ export const useAuthStore = defineStore('auth', () => {
 
       if (credential.user) {
         // 🔐 사용자 정보 저장
-        await saveUserToFirestore(credential.user.uid, {
+        await saveUserProfile(credential.user.uid, {
           email: data.email.trim(),
           name: data.name.trim(),
           phone: data.phone.trim(),
@@ -377,7 +371,6 @@ export const useAuthStore = defineStore('auth', () => {
           role: 'user',
           provider: 'email',
           joinedAt: new Date(),
-          lastLoginAt: new Date(),
           privacyConsent: true,
           privacyConsentDate: new Date(),
           accessLevel: 'standard'
@@ -437,13 +430,12 @@ export const useAuthStore = defineStore('auth', () => {
 
       if (credential.user) {
         // 🔐 게스트 정보 저장
-        await saveUserToFirestore(credential.user.uid, {
+        await saveUserProfile(credential.user.uid, {
           role: 'guest',
           provider: 'anonymous',
-          joinedAt: new Date(),
-          lastLoginAt: new Date(),
           isTemporary: true,
-          name: '게스트 사용자'
+          name: '게스트 사용자',
+          joinedAt: new Date()
         })
 
         ElMessage.success('게스트로 로그인했습니다.')
@@ -492,7 +484,7 @@ export const useAuthStore = defineStore('auth', () => {
 
       if (credential.user) {
         // 🔐 정식 사용자 정보 저장
-        await saveUserToFirestore(credential.user.uid, {
+        await saveUserProfile(credential.user.uid, {
           email: data.email.trim(),
           name: data.name.trim(),
           phone: data.phone.trim(),
@@ -500,7 +492,6 @@ export const useAuthStore = defineStore('auth', () => {
           role: 'user',
           provider: 'email',
           joinedAt: new Date(),
-          lastLoginAt: new Date(),
           privacyConsent: true,
           privacyConsentDate: new Date(),
           accessLevel: 'standard'
@@ -639,7 +630,7 @@ export const useAuthStore = defineStore('auth', () => {
       error.value = null
 
       // Firestore 업데이트
-      await saveUserToFirestore(user.value.uid, updates)
+      await saveUserProfile(user.value.uid, updates)
 
       // 로컬 상태 업데이트
       if (userProfile.value) {
@@ -674,10 +665,10 @@ export const useAuthStore = defineStore('auth', () => {
     currentRole,
     displayName,
 
-    // 액션 (LoginView.vue에서 사용하는 메서드명들 포함)
-    login, // LoginView.vue에서 호출
-    loginWithEmail, // 기존 메서드
-    signInWithGoogle, // LoginView.vue에서 호출
+    // 액션
+    login,
+    loginWithEmail,
+    signInWithGoogle,
     registerWithEmail,
     loginAsGuest,
     upgradeGuestToUser,
